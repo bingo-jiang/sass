@@ -1,0 +1,322 @@
+{% extends 'mother_tmp/project_basis.html' %}
+{% load static %}
+{% load space_tags %}
+{% block title %}项目设置{% endblock %}
+{% block css %}
+    <style>
+        .dropdown #left_dropdown {
+            border-bottom: 2px solid white;
+        }
+
+        #settings {
+            background-color: #2aabd2;
+        }
+
+        a:hover {
+            text-decoration: none;
+        }
+
+        #btnSetting a {
+            color: white;
+            margin: 5px 3px;
+        }
+
+        #addModule a {
+            color: #01a252;
+        }
+
+        #addModule a:hover {
+            color: #2b669a;
+            cursor: pointer;
+        }
+
+        #btnSetting a:hover {
+            color: #2b669a;
+            cursor: pointer;
+        }
+
+
+        #project-data {
+            border-left: 2px solid red;
+        }
+
+
+        #settings-center {
+            margin-top: 20px;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div id="settings-center" class="container-fluid clearfix">
+        <div class="col-xs-3">
+            <div class="panel panel-info">
+                <div class="panel-heading">项目配置</div>
+                <ul class="list-group">
+                    <li id="project-data" class="list-group-item">
+                        <a href="{% url 'settings' project_id=request.current.project.id %}">
+                            项目信息
+                        </a>
+                    </li>
+                    <li id="project_delete" class="list-group-item">
+                        <a href="{% url 'settings_delete' project_id=request.current.project.id %}">项目删除</a>
+                    </li>
+                    <li id="module_manage" class="list-group-item">
+                        <a href="{% url 'module' project_id=request.current.project.id %}">
+                            模块管理
+                        </a>
+                    </li>
+                    <li id="member_manage" class="list-group-item">
+                        <a href="{% url 'member' project_id=request.current.project.id %}">
+                            成员管理
+                        </a>
+                    </li>
+                    <li id="invite_code" class="list-group-item">
+                        <a href="{% url 'invite_code' project_id=request.current.project.id %}">
+                            邀请码管理
+                        </a>
+                    </li>
+
+                    <li class="list-group-item"></li>
+
+                    <li id="btnSetting" class="list-group-item">
+                        <a class="btn btn-success" data-toggle="modal" data-target="#inviteModal">
+                            邀请成员
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div id="info" class="col-xs-9">
+            <div class="user-info">
+                <div class="panel panel-info">
+                    <div class="panel-heading" style="font-size: 16px;">
+                        <i class="fa fa-address-card-o" aria-hidden="true" style="margin-right:2px;"></i>项目信息
+                    </div>
+                    <table id="project-details" style="font-size: 16px;">
+                        <tbody class="tbody">
+                        <tr style="height: 10px;"></tr>
+                        <tr>
+                            <td class="tbody-left">项目序号：</td>
+                            <td>{{ project_obj.id }}</td>
+                        </tr>
+                        <tr style="height: 10px;"></tr>
+                        <tr>
+                            <td class="tbody-left">项目标记：</td>
+                            {% if project_obj.star == 1 %}
+                                <td>星级项目<i class="fa fa-star" aria-hidden="true" style="color: red"></i></td>
+                            {% else %}
+                                <td>非星级项目<i class="fa fa-star-o" aria-hidden="true"></i></td>
+                            {% endif %}
+                        </tr>
+                        <tr style="height: 10px;"></tr>
+                        <tr>
+                            <td class="tbody-left">项目名称：</td>
+                            <td>{{ project_obj.name }}</td>
+                        </tr>
+                        <tr style="height: 10px;"></tr>
+                        <tr>
+                            <td class="tbody-left">项目描述：</td>
+                            <td>{{ project_obj.desc }}</td>
+                        </tr>
+                        <tr style="height: 10px;"></tr>
+                        <tr>
+                            <td class="tbody-left">项目空间：</td>
+                            <td>
+                                {% space_trans project_obj.use_space %}
+                                /{{ request.current.price_policy.project_space }}GB
+                            </td>
+                        </tr>
+                        <tr style="height: 10px;"></tr>
+                        <tr>
+                            <td class="tbody-left">参与人数：</td>
+                            <td>
+                                {{ project_obj.join_count }}
+                            </td>
+                        </tr>
+                        <tr style="height: 10px;"></tr>
+                        <tr>
+                            <td class="tbody-left">背景颜色：</td>
+                            <td>
+                                <span style="background-color: {{ project_obj.get_color_display }};
+                                        color: {{ project_obj.get_color_display }};">
+                                    {{ project_obj.get_color_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr style="height: 10px;"></tr>
+                        <tr>
+                            <td class="tbody-left">创建时间：</td>
+                            <td>{{ request.current.project.create_time }}</td>
+                        </tr>
+                        <tr style="height: 10px;"></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 邀请成员Modal -->
+    <div class="modal fade" id="inviteModal" tabindex="-1" role="dialog"
+         aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">项目成员邀请</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="invite-form" class="form-horizontal">{% csrf_token %}
+                        {% for item in invite_form %}
+                            <div class="form-group" style="width: 96%;margin: 10px auto;">
+                                <label for="{{ item.id_for_label }}">{{ item.label }}</label>
+                                <span style="color: #8c8c8c;">
+                                    {% if item.help_text %}{{ item.help_text }}{% endif %}
+                                </span>
+                                {{ item }}
+                                <div class="error-msg"></div>
+                            </div>
+                        {% endfor %}
+                    </form>
+                    <button id="getInviteCode" class="btn btn-danger" style="margin-left: 80%;">
+                        生成邀请码
+                    </button>
+                </div>
+                <div class="hide" id="inviteCodeArea">
+                    <hr style="margin-bottom: 15px;margin-top: 0;">
+                    <div class="form-group" style="margin: 10px auto;width: 96%;">
+                        <div class="input-group">
+                            <div class="input-group-btn">
+                                <label>
+                                    <input type="button" value="链接" class="btn btn-default">
+                                </label>
+                            </div>
+                            <label for="inviteCode"></label>
+                            <input type="text" class="form-control" id="inviteCode">
+                            <div class="input-group-btn">
+                                <label>
+                                    <input type="button" value="复制链接" class="btn btn-info"
+                                           id="copyCode">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 问题模块Modal -->
+    <div class="modal fade" id="ModuleModal" tabindex="-1" role="dialog"
+         aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">问题模块添加</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="module-form" class="form-horizontal">{% csrf_token %}
+                        {% for item in module_form %}
+                            <div class="form-group" style="width: 96%;margin: 10px auto;">
+                                <label for="{{ item.id_for_label }}">{{ item.label }}</label>
+                                {{ item }}
+                                <div class="error-msg"></div>
+                            </div>
+                        {% endfor %}
+                    </form>
+                    <div class="msg" style="margin: 0 auto;color: green;text-align: center;"></div>
+                    <button id="addModuleBtn" class="btn btn-primary clearfix" style="margin-left: 88%;">
+                        添加
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+    <script>
+        var INVITE_URL = "{% url 'invite' project_id=request.current.project.id %}";
+        $(function () {
+            bindBtngetInviteCode();
+            bindcopyCode();
+            bindaddModuleBtn();
+        });
+
+        //复制链接
+        function bindcopyCode() {
+            $('#copyCode').click(function () {
+                var urlTxet = $('#inviteCode')[0];
+                urlTxet.select();
+                document.execCommand('Copy');
+                alert('复制成功');
+            })
+        }
+
+        //生成邀请码
+        function bindBtngetInviteCode() {
+            $('#getInviteCode').click(function () {
+                $.ajax({
+                    url: INVITE_URL,
+                    type: 'POST',
+                    data: $('#invite-form').serialize(),
+                    dataType: 'JSON',
+                    success: function (res) {
+                        if (res.status) {
+                            console.log(res.data);
+                            $('#inviteCodeArea').removeClass('hide').find('#inviteCode').val(res.data);
+                        } else {
+                            console.log(res.error);
+                            $.each(res.error, function (key, value) {
+                                $("#id_" + key).next('.error-msg').text(value[0]);
+                            })
+                        }
+                    }
+                })
+            })
+        }
+
+        function bindaddModuleBtn() {
+            $('#addModuleBtn').click(function () {
+                const $moduleForm = $('#module-form');
+                $("#id_title").next('.error-msg').text('');
+                $moduleForm.next('.msg').text('');
+                $.ajax({
+                    url: "{% url 'add_module' project_id=request.current.project.id %}",
+                    type: 'POST',
+                    data: $moduleForm.serialize(),
+                    dataType: 'JSON',
+                    success: function (res) {
+                        if (res.status) {
+                            $('#id_title').val('');
+                            $moduleForm.next('.msg').text(res.data);
+                            let timeC1 = setInterval(function () {
+                                console.log('timeC1');
+                                $moduleForm.next('.msg').text('');
+                                if ($moduleForm.next('.msg').text() === '') {
+                                    clearInterval(timeC1);
+                                }
+                            }, 3000);
+
+                        } else {
+                            $.each(res.error, function (key, value) {
+                                $("#id_" + key).next('.error-msg').text(value[0]);
+                            });
+                            let timeC2 = setInterval(function () {
+                                const $titleInput = $("#id_title");
+                                $titleInput.next('.error-msg').text('');
+                                if ($titleInput.next('.error-msg').text() === '') {
+                                    clearInterval(timeC2);
+                                }
+                            }, 3000);
+
+                        }
+                    }
+                })
+            })
+        }
+
+    </script>
+{% endblock %}

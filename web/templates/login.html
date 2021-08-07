@@ -1,0 +1,53 @@
+{% extends 'mother_tmp/basic.html' %}
+{% load static %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/common.css'%}">
+{% endblock %}
+{% block title %}登录{% endblock %}
+{% block content %}
+    <div class="account">
+        <p class="title center">用户登录</p>
+        <form id="regForm" method="POST" action="{% url 'login' %}" novalidate style="height: 250px">
+            {% csrf_token %}
+            {% for field in form %}
+                {% if field.name == 'code' %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        <div class="row">
+                            <div class="col-xs-7">
+                                {{ field }}
+                                <span class="error-msg">{{ field.errors.0 }}</span>
+                            </div>
+                            <div class="col-xs-5">
+                                <img id="imgCode" src="{% url 'img_code' %}" alt="验证码" title="点击刷新">
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        <span class="error-msg">{{ field.errors.0 }}</span>
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+                <button id="btnSubmit" type="submit" class="btn btn-primary" style="float: right;overflow: auto;">登录</button>
+{#                <a class="btn" href="{% url 'register' %}" style="float: left;display: inline;overflow: auto;">用户注册</a>#}
+                <a class="btn" href="{% url 'login_sms' %}" style="float: left;display: inline;overflow: auto;">短信登录>></a>
+
+        </form>
+    </div>
+{% endblock %}
+{% block js %}
+    <script>
+
+        /*各点击事件*/
+        $(function () {
+            $('#imgCode').click(function () {
+                var oldSrc=$(this).attr('src');
+                $(this).attr('src',oldSrc+'?');
+            });
+        })
+    </script>
+{% endblock %}

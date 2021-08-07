@@ -1,0 +1,77 @@
+#newProject:hover {
+    background-color: #2aabd2;
+}
+
+#newProject {
+    background-color: #2b669a;
+}
+
+.panel-body {
+    padding: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.panel-body > .item {
+    border-radius: 6px;
+    width: 228px;
+    border: 1px solid #dddddd;
+    margin: 20px 10px;
+}
+
+.panel-body > .item:hover {
+    border: 1px solid blue;
+}
+
+.panel-body > .item > .title {
+    height: 104px;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    font-size: 16px;
+    text-decoration: none;
+}
+
+.panel-body > .item > .itemInfo {
+    padding: 10px 10px;
+    display: flex;
+    justify-content: space-between;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    color: #8c8c8c;
+}
+
+.panel-body > .item > .itemInfo a {
+    text-decoration: none;
+}
+
+.panel-body > .item > .itemInfo .fa {
+    font-size: 18px;
+}
+
+.color-radio label {
+    padding: 0 auto;
+    margin: 0 10px;
+}
+
+.color-radio input[type='radio'] {
+    display: none;
+}
+
+.color-radio input[type='radio'] + span {
+    display: inline-block;
+    height: 35px;
+    width: 35px;
+    border-radius: 50%;
+    border: 2px solid #dddddd;
+}
+
+.color-radio input[type='radio']:checked + span {
+    border: 2px solid black;
+}

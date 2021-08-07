@@ -1,0 +1,90 @@
+{% extends 'mother_tmp/project_basis.html' %}
+{% load static %}
+{% block title %}用戶中心{% endblock %}
+{% block css %}
+    <style>
+        #user-center {
+            display: inline;
+            align-content: center;
+        }
+
+        #user-menue {
+            text-align: center;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        #my-info a, #change-info a, #change-pwd a, #my-data a:hover {
+            text-decoration: none;
+        }
+
+        #change-pwd {
+            background-color: #f2dede;
+        }
+
+        .user-info {
+            padding: 0 20px;
+        }
+
+        #pwdForm {
+            margin: 15px 15px;
+        }
+
+
+    </style>
+{% endblock %}
+{% block content %}
+    <div id="user-center" class="container clearfix">
+        <div class="col-md-2"></div>
+        <div id="info-menue" class="col-md-2">
+            <div id="user-menue">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">用户中心</div>
+                    <ul class="list-group">
+                        <li id="my-info" class="list-group-item">
+                            <a href="{% url 'user_center' %}">用户信息</a>
+                        </li>
+                        <li id="change-info" class="list-group-item">
+                            <a href="{% url 'user_editor' %}">完善信息</a>
+                        </li>
+                        <li class="list-group-item" style="height: 2px;margin: 0 auto;padding: 0 15px;"></li>
+                        <li id="change-pwd" class="list-group-item">
+                            <a href="{% url 'user_alter_pwd' %}">修改密码</a>
+                        </li>
+                        <li id="my-data" class="list-group-item"><a href="">其他</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div id="info" class="col-md-6">
+            <div class="user-info">
+                <div class="panel panel-danger">
+                    <div class="panel-heading">
+                        <i class="fa fa-address-card-o" aria-hidden="true" style="margin-right:2px;"></i>修改密码
+                    </div>
+                    <form id="pwdForm" action="{% url 'user_alter_pwd' %}" method="POST" novalidate>
+                        {% csrf_token %}
+                        {% for field in form %}
+                            <div class="form-group">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field }}
+                                <span class="error-msg">{{ field.errors.0 }}</span>
+                            </div>
+                        {% endfor %}
+                        <div class="clearfix">
+                            <div class="col-md-10"></div>
+                            <input type="submit" class="btn btn-danger col-md-2" value="确定修改">
+                        </div>
+                    </form>
+{#                    <div class="clearfix">#}
+{#                        <div class="col-md-10"></div>#}
+{#                        <button id="btnAlterPwd" class="btn btn-danger col-md-2">确定修改</button>#}
+{#                    </div>#}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2"></div>
+    </div>
+{% endblock %}

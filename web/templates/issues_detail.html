@@ -1,0 +1,510 @@
+{% extends 'mother_tmp/project_basis.html' %}
+{% load static %}
+{% block title %}项目问题{% endblock %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'plugins/mdeditor/css/editormd.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/mdeditor/css/editormd.preview.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/bootstrap-datepicker/css/bootstrap-datepicker.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/bootstrap-select-1.13.9/css/bootstrap-select.min.css' %}">
+
+    <style>
+        a:hover {
+            text-decoration: none;
+        }
+
+        .dropdown #left_dropdown {
+            border-bottom: 2px solid white;
+        }
+
+        #issues {
+            background-color: #2aabd2;
+        }
+
+        #back_issues {
+            float: right;
+            height: 30px;
+            width: 60px;
+            text-align: center;
+        }
+
+        #back_issues a {
+            color: white;
+            margin: 7px auto;
+        }
+
+        #back_issues a:hover {
+            text-decoration: none;
+        }
+
+        #edit-issues-form {
+            margin-top: 10px;
+        }
+
+        .comment-area .item {
+            margin-top: 20px;
+        }
+
+        .comment-area .left-avatar {
+            float: left;
+            margin-right: 10px;
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background-color: #304659;
+            color: white;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 50%;
+        }
+
+        .comment-area .right-info {
+            padding-left: 35px;
+        }
+
+        .comment-area .right-info .desc .msg {
+            display: inline-block;
+            padding-right: 20px;
+            color: #8c8c8c;
+        }
+
+        .comment-area .child {
+            padding-left: 55px;
+        }
+
+        .comment-area .error-msg {
+            color: red;
+        }
+
+        .comment-area .reply-user {
+            display: inline-block;
+            background-color: #ddd;
+            color: black;
+            padding: 6px 8px;
+            margin-left: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .editormd-fullscreen {
+            z-index: 1001;
+        }
+
+        #btnReplySubmit {
+            float: right;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container-fluid">
+        <div class="col-md-7">
+            <div class="panel panel-default">
+                <div class="panel-heading clearfix">
+                    <div style="float: left;height: 30px;padding-top: 5px">
+                        <h3 class="panel-title">
+                            <i class="fa fa-pencil-square-o" aria-hidden="true" style="margin-right: 5px;"></i>
+                            问题更新
+                        </h3>
+                    </div>
+                    <div class="btn btn-success" id="back_issues" style="">
+                        <a href="{% url 'issues' project_id=request.current.project.id %}">返回</a>
+                    </div>
+                </div>
+                <div class="panel-body" id="issues_btn">
+                    <form id="edit-issues-form" class="form-horizontal" method="POST">{% csrf_token %}
+                        <div class="form-group">
+                            <label for="{{ form.issues_type.id_for_label }}"
+                                   class="col-sm-2 control-label">
+                                {{ form.issues_type.label }}
+                            </label>
+                            <div class="col-sm-10">
+                                <div>{{ form.issues_type }}</div>
+                                <div class="error-msg"></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.subject.id_for_label }}"
+                                   class="col-sm-2 control-label">
+                                {{ form.subject.label }}
+                            </label>
+                            <div class="col-sm-10">
+                                <div>
+                                    {{ form.subject }}
+                                </div>
+                                <div class="error-msg"></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.module.id_for_label }}"
+                                   class="col-sm-2 control-label">
+                                {{ form.module.label }}
+                            </label>
+                            <div class="col-sm-10">
+                                <div>{{ form.module }}</div>
+                                <div class="error-msg"></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.desc.id_for_label }}"
+                                   class="col-sm-2 control-label">
+                                {{ form.desc.label }}
+                            </label>
+                            <div class="col-sm-10">
+                                <!--div包住desc字段，便于设置markdown格式-->
+                                <div id="desc">{{ form.desc }}</div>
+                                <div class="error-msg"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group clearfix">
+                            <div class="col-xs-6 pd-0">
+                                <label for="{{ form.status.id_for_label }}"
+                                       class="col-sm-4 control-label">
+                                    {{ form.status.label }}
+                                </label>
+                                <div class="col-sm-8">
+                                    <div>
+                                        <div>{{ form.status }}</div>
+                                        <div class="error-msg"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-6 pd-0">
+                                <label for="{{ form.priority.id_for_label }}"
+                                       class="col-sm-4 control-label">
+                                    {{ form.priority.label }}
+                                </label>
+                                <div class="col-sm-8">
+                                    <div>
+                                        <div>{{ form.priority }}</div>
+                                        <div class="error-msg"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group clearfix">
+                            <div class="col-xs-6 pd-0">
+                                <label for="{{ form.assign.id_for_label }}"
+                                       class="col-sm-4 control-label">
+                                    {{ form.assign.label }}
+                                </label>
+                                <div class="col-sm-8">
+                                    <div id="desc">
+                                        <div>{{ form.assign }}</div>
+                                        <div class="error-msg"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-6 pd-0">
+                                <label for="{{ form.attention.id_for_label }}"
+                                       class="col-sm-4 control-label">
+                                    {{ form.attention.label }}
+                                </label>
+                                <div class="col-sm-8">
+                                    <div>
+                                        <div>{{ form.attention }}</div>
+                                        <div class="error-msg"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group clearfix">
+                            <div class="col-xs-6 pd-0">
+                                <label for="{{ form.start_date.id_for_label }}"
+                                       class="col-sm-4 control-label">
+                                    {{ form.start_date.label }}
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-calendar" aria-hidden="true"></i>
+                                        </div>
+                                        {{ form.start_date }}
+                                    </div>
+                                    <div class="error-msg"></div>
+                                </div>
+                            </div>
+                            <div class="col-xs-6 pd-0">
+                                <label for="{{ form.end_date.id_for_label }}"
+                                       class="col-sm-4 control-label">
+                                    {{ form.end_date.label }}
+                                </label>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-calendar" aria-hidden="true"></i>
+                                        </div>
+                                        {{ form.end_date }}
+                                    </div>
+                                    <div class="error-msg"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group clearfix">
+                            <div class="col-xs-6 pd-0">
+                                <label for="{{ form.mode.id_for_label }}"
+                                       class="col-sm-4 control-label">
+                                    {{ form.mode.label }}
+                                </label>
+                                <div class="col-sm-8">
+                                    <div>
+                                        <div>{{ form.mode }}</div>
+                                        <div class="error-msg"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-6 pd-0">
+                                <label for="{{ form.parent.id_for_label }}"
+                                       class="col-sm-4 control-label">
+                                    {{ form.parent.label }}
+                                </label>
+                                <div class="col-sm-8">
+                                    <div>
+                                        <div>{{ form.parent }}</div>
+                                        <div class="error-msg"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {#                        <input class="btn btn-success" type="submit" value="保存" style="float: right;">#}
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="panel panel-default" style="max-height: 800px;overflow: scroll;">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        <i class="fa fa-search" aria-hidden="true" style="margin-right: 5px;"></i>更新记录
+                    </h3>
+                </div>
+                <div class="panel-body comment-area" style="display: block">
+                    <div class="comment-list">
+                        <!--放置记录、评论模板-->
+                    </div>
+                    <hr/>
+                    <div class="comment-text" id="commentText">
+                        <div class="form-group">
+                            <textarea id="content" rows="6" class="form-control"
+                                      placeholder="请输入要回复的内容"></textarea>
+                            <span class="error-msg"></span>
+                        </div>
+
+                        <input class="btn btn-primary" type="button" id="btnReplySubmit" value="提 交">
+
+                        <div class="reply-user hide" id="replyUser">
+                            回复 <span></span>
+                            <i class="fa fa-times-circle" aria-hidden="true" style="color: #9d9d9d;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--更新记录前端模板-->
+    <div id="recordTemplate" class="hide">
+        <div class="item clearfix">
+            <div class="left-avatar"></div>
+            <div class="right-info">
+                <pre></pre>
+                <div class="desc">
+                    <div class="msg">
+                        <span class="type"></span>
+                    </div>
+                    <div class="msg">
+                        <span class="user"></span>
+                    </div>
+                    <div class="msg">
+                        <span class="date"></span>
+                    </div>
+                    <a href="#commentText" class="reply">
+                        <i class="fa fa-commenting-o" aria-hidden="true"></i> 回复
+                    </a>
+                </div>
+            </div>
+            <div class="child"></div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+    <script src="{% static 'plugins/mdeditor/editormd.min.js' %}"></script>
+    <script src="{% static 'plugins/mdeditor/lib/flowchart.min.js' %}"></script>
+    <script src="{% static 'plugins/mdeditor/lib/jquery.flowchart.min.js' %}"></script>
+    <script src="{% static 'plugins/mdeditor/lib/marked.min.js' %}"></script>
+    <script src="{% static 'plugins/mdeditor/lib/prettify.min.js' %}"></script>
+    <script src="{% static 'plugins/mdeditor/lib/raphael.min.js' %}"></script>
+    <script src="{% static 'plugins/mdeditor/lib/sequence-diagram.min.js' %}"></script>
+    <script src="{% static 'plugins/mdeditor/lib/underscore.min.js' %}"></script>
+    <script src="{% static 'plugins/bootstrap-datepicker/js/bootstrap-datepicker.min.js' %}"></script>
+    <script src="{% static 'plugins/bootstrap-datepicker/locales/bootstrap-datepicker.zh-CN.min.js' %}"></script>
+    <script src="{% static 'plugins/bootstrap-select-1.13.9/js/bootstrap-select.min.js' %}"></script>
+    <script src="{% static 'plugins/bootstrap-select-1.13.9/js/i18n/defaults-zh_CN.min.js' %}"></script>
+
+    <script>
+        var picUpload = "{% url 'wiki_img_upload' project_id=request.current.project.id %}";
+        var ISSUES_RECORD_API = "{% url 'issues_record' project_id=request.current.project.id issues_id=issues_id %}";
+        var editor;
+        var CHANGE_URL = "{% url 'issues_change' project_id=request.current.project.id issues_id=issues_id %}";
+        var EDITORTOOLBAR = editormd.toolbarModes['full'].slice(3, -3);
+        EDITORTOOLBAR.splice(7, 1);
+        var SELFTOOLBAR = eval(['save']);
+        var FINALTOOLBAR = EDITORTOOLBAR.concat(SELFTOOLBAR);
+
+
+        $(function () {
+            initDatePicker();
+            initMdEditor();
+            initResponse();
+            bindRelyBtn();
+            bindBtnSubmit();
+            bindCancelReplyUser();
+            bindChangeIssues();
+        });
+
+        //初始化日期选择器
+        function initDatePicker() {
+            $('#id_start_date,#id_end_date').datepicker({
+                format: 'yyyy-mm-dd',
+                startDate: 0,
+                language: 'zh-CN',
+                autoclose: true,
+            });
+        }
+
+        //初始化编辑器
+        function initMdEditor() {
+            editor = editormd('desc', {
+                placeholder: '请输入内容',
+                height: 400,
+                path: "{% static 'plugins/mdeditor/lib/' %}",
+                imageUpload: true,/*支持本地图片上传*/
+                imageUploadURL: picUpload,/*上传图片的url*/
+                toolbarAutoFixed: false,
+                imageFormats: ["jpg", "png", "jpeg", "gif"], /*支持的图片格式*/
+                toolbarIcons: function () {
+                    return FINALTOOLBAR;
+                    //return ["bold", "hr", "del", "italic", "quote", "|", "image", "preview", "watch", "fullscreen", "||", "save"]
+                },
+                toolbarCustomIcons: {
+                    save: "<input id='save-editor' type='button' value='保 存' class='btn btn-info btn-xs' onclick='saveMarkdownContent();' />"
+                },
+                onload: function () {
+                    this.previewing()
+                }
+            });
+        }
+
+        //初始化问题评论
+        function initResponse() {
+            $.ajax({
+                url: ISSUES_RECORD_API,
+                type: 'GET',
+                dataType: 'JSON',
+                success: function (res) {
+                    if (res.status) {
+                        $.each(res.data, function (index, item) {
+                            showRecordItem(item);
+                        })
+                    }
+                }
+            })
+        }
+
+        //显示更新记录
+        function showRecordItem(dataDict) {
+            var $item = $("#recordTemplate").find('.item').clone();
+            $item.find('.left-avatar').html(dataDict.creator[0].toUpperCase());
+            $item.find('pre').html(dataDict.content);
+            $item.find('.user').html(dataDict.creator);
+            $item.find('.type').html(dataDict.reply_type);
+            $item.find('.date').html(dataDict.create_datetime);
+
+            $item.attr({id: dataDict.id, username: dataDict.creator});
+
+            if (dataDict.parent_id) {
+                $('#' + dataDict.parent_id).children('.child').append($item);
+            } else {
+                $(".comment-list").append($item);
+            }
+        }
+
+        //评论回复按钮事件绑定
+        function bindRelyBtn() {
+            $(".comment-list").on('click', '.reply', function () {
+                var item = $(this).parent().parent().parent();
+                var id = item.attr('id');
+                var username = item.attr('username');
+                $('#replyUser').removeClass('hide').attr('parent-id', id).children('span').text(username);
+            })
+        }
+
+        //取消回复对象
+        function bindCancelReplyUser() {
+            $('#replyUser').click(function () {
+                $(this).addClass('hide').removeAttr('parent-id').children('span').text("");
+            })
+        }
+
+        //评论提交按钮事件
+        function bindBtnSubmit() {
+            $("#btnReplySubmit").click(function () {
+                $("#commentText .error-msg").text("");
+                $.ajax({
+                    url: ISSUES_RECORD_API,
+                    type: "POST",
+                    data: {'content': $('#content').val(), 'reply': $('#replyUser').attr('parent-id')},
+                    dataType: 'JSON',
+                    success: function (res) {
+                        if (res.status) {
+                            showRecordItem(res.data);
+                            $('#content').val('');
+                            $('#replyUser').addClass('hide').removeAttr('parent-id').children('span').text('');
+                        } else {
+                            console.log(res.error);
+                            $.each(res.error, function (key, value) {
+                                $("#content").next('.error-msg').text(value[0]);
+                            })
+                        }
+                    }
+                })
+            })
+        }
+
+        //更新记录
+        function bindChangeIssues() {
+            $("#edit-issues-form").find('.form-control').change(function () {
+                var postDict = {'name': $(this).attr('name'), 'value': $(this).val()};
+                console.log(postDict);
+                postEditorIssues(postDict)
+            })
+        }
+
+        //markdown保存按钮事件
+        function saveMarkdownContent() {
+            var postDict = {'name': 'desc', 'value': editor.getValue()};
+            console.log(postDict);
+            postEditorIssues(postDict)
+        }
+
+        //提交数据更改请求
+        function postEditorIssues(postDict) {
+            $("#id_" + postDict.name).parent().next('.error-msg').text("");
+            $.ajax({
+                url: CHANGE_URL,
+                type: 'POST',
+                data: JSON.stringify(postDict),
+                dataType: 'JSON',
+                header: {
+                    'Content-Type': 'application/json;charset=utf-8',
+                },//返回请求头
+                success: function (res) {
+                    if (res.status) {
+                        showRecordItem(res.data);
+                    } else {
+                        $("#id_" + postDict.name).parent().next('.error-msg').text(res.error);
+                    }
+                }
+            })
+        }
+
+    </script>
+{% endblock %}

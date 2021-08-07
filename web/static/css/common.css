@@ -1,0 +1,37 @@
+a{
+    text-decoration: none;
+}
+
+a:hover { color: #2b669a; text-decoration:none;}
+a:active { color: red;text-decoration:none; }
+
+.account{
+    width: 400px;
+    margin: 0 auto;
+    border: 1px solid #f0f0f0;
+    padding: 10px 30px 30px 30px;
+    -webkit-box-shadow: 5px 10px 10px rgba(0,0,0,.05);
+    box-shadow: 5px 10px 10px rgba(0,0,0,.05);
+
+}
+.center{
+    text-align: center;
+}
+.title{
+    font-size: 28px;
+    color: #2aabd2;
+}
+.form-group{
+    margin-bottom: 15px;
+}
+.error-msg{
+    color: red;
+    position: absolute;
+    font-size: 10px;
+}
+.changehover:hover{
+    color: red;
+}
+.float-to-right{
+    float: right;
+}

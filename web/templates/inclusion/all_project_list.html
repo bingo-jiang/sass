@@ -1,0 +1,16 @@
+<ul class="dropdown-menu">
+    {% if my_project %}
+        <li><p><i class="fa fa-list" aria-hidden="true" style="margin: 0 10px;"></i>我创建的项目</p></li>
+        {% for item in my_project %}
+            <li><a href="{% url 'dashborde' project_id=item.id %}">{{ item.name }}</a></li>
+        {% endfor %}
+    {% endif %}
+    {% if join_project %}
+        <li role="separator" class="divider"></li>
+        <li><p><i class="fa fa-handshake-o" aria-hidden="true"></i>我参与的项目</p></li>
+        {% for item in join_project %}
+            <li><a href="{% url 'dashborde' project_id=item.project.id %}">{{ item.project.name }}</a></li>
+        {% endfor %}
+    {% endif %}
+</ul>
+

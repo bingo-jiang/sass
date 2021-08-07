@@ -1,0 +1,212 @@
+{% extends 'mother_tmp/project_basis.html' %}
+{% load static %}
+{% block title %}项目统计{% endblock %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'plugins/daterangepicker/daterangepicker.css' %}">
+    <style>
+        .dropdown #left_dropdown {
+            border-bottom: 2px solid white;
+        }
+
+        #statistic {
+            background-color: #2aabd2;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container-fluid" style="margin-top: 20px;">
+        <div class="datePicker">
+            <div class="input-group col-md-3">
+                <div class="input-group-addon" style="background-color:#4b88a6;color: white;">
+                    <i class="fa fa-calendar" aria-hidden="true"></i>日期范围
+                </div>
+                <label for="dateRangePicker"></label>
+                <input type="text" class="form-control" id="dateRangePicker" style="text-align:center;">
+            </div>
+        </div>
+        <div class="row" style="margin-top: 20px;">
+            <div class="col-md-7">
+                <div class="panel panel-success">
+                    <div class="panel-heading">
+                        <i class="fa fa-bar-chart" aria-hidden="true"></i>各人员工作进度
+                    </div>
+                    <div class="panel-body">
+                        <div id="projectUserProcess" style="min-height: 300px;margin: 0 auto;">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <i class="fa fa-pie-chart" aria-hidden="true"></i>优先级统计
+                    </div>
+                    <div class="panel-body">
+                        <div id="priority" style="min-height: 300px;margin: 0 auto;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block js %}
+    <script src="{% static 'plugins/higncharts/highcharts.js' %}"></script>
+    <script src="{% static 'plugins/daterangepicker/moment.min.js' %}"></script>
+    <script src="{% static 'plugins/daterangepicker/daterangepicker.js' %}"></script>
+
+    <script>
+        var PRIORITY_URL = "{% url 'statistic_priority' project_id=request.current.project.id %}";
+        var PROJECTPROCESS_URL = "{% url 'statistic_project_progress' project_id=request.current.project.id %}";
+        $(function () {
+            initdateRangePicker();
+            priority(moment().subtract(7, 'days').format('YYYY-MM-DD'), moment().add(1, 'days').format('YYYY-MM-DD'));
+            projectUserProcess(moment().subtract(7, 'days').format('YYYY-MM-DD'), moment().add(1, 'days').format('YYYY-MM-DD'));
+        });
+
+        function initdateRangePicker() {
+            var optionData = {
+                maxDate: moment(),
+                alwaysShowCalendars: true,
+                showWeekNumbers: true,
+                ranges: {
+                    '今天': [moment(), moment()],
+                    '昨天': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    '最近7天': [moment().subtract(6, 'days'), moment()],
+                    '最近30天': [moment().subtract(29, 'days'), moment()],
+                    '本月': [moment().startOf('month'), moment().endOf('month')]
+                },
+                locale: {//本地汉化配置
+                    format: 'YYYY-MM-DD',
+                    separator: ' 至 ',
+                    applyLabel: '确定',
+                    cancelLabel: '取消',
+                    fromLabel: '开始',
+                    toLabel: '结束',
+                    customRangeLabel: '自定义',
+                    weekLabel: 'W',
+                    daysOfWeek: ['一', '二', '三', '四', '五', '六', '日'],
+                    monthNames: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+                    firstDay: 1
+                },
+            };
+            $("#dateRangePicker").daterangepicker(optionData, function (start, end, label) {
+                // 选择了时间之后，函数自动被触发。
+                priority(start.format('YYYY-MM-DD'), end.add(1, 'days').format('YYYY-MM-DD'));
+                projectUserProcess(start.format('YYYY-MM-DD'), end.add(1, 'days').format('YYYY-MM-DD'));
+                console.log(start.format('YYYY-MM-DD'), end.add(1, 'days').format('YYYY-MM-DD'));
+            });
+        }
+
+        function priority(start, end) {
+            var config = {
+                chart: {
+                    type: 'pie'
+                },
+                title: {
+                    text: null
+                },
+                credits: {
+                    enabled: false // 关闭版权信息
+                },
+                tooltip: {
+                    pointFormat: '{series.name}: <b>{point.y}</b>'
+                },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: false
+                        },
+                        showInLegend: true
+                    }
+                },
+                series: [{
+                    name: '优先级',
+                    colorByPoint: true,
+                    data: []
+                }]
+            };
+            $.ajax({
+                url: PRIORITY_URL,
+                type: 'GET',
+                data: {'start': start, 'end': end},
+                dataType: 'JSON',
+                success: function (res) {
+                    if (res.status) {
+                        config.series[0].data = res.data;
+                        Highcharts.chart('priority', config);
+                    }
+                }
+            })
+        }
+
+        function projectUserProcess(start, end) {
+            var projectUserProcessConfig = {
+                chart: {
+                    type: 'column'
+                },
+                title: {
+                    text: null,
+                },
+                credits: {
+                    enabled: false // 关闭版权信息
+                },
+                xAxis: {
+                    categories: []
+                },
+                yAxis: {
+                    min: 0,
+                    title: {
+                        text:'任务数量',
+                    },
+                    stackLabels: {  // 堆叠数据标签
+                        enabled: true,
+                        style: {
+                            fontWeight: 'bold',
+                            color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                        }
+                    }
+                },
+                tooltip: {
+                    formatter: function () {
+                        return '<b>' + this.x + '</b><br/>' +
+                            this.series.name + ': ' + this.y + '<br/>' +
+                            '总量: ' + this.point.stackTotal;
+                    }
+                },
+                plotOptions: {
+                    column: {
+                        stacking: 'normal',
+                        dataLabels: {
+                            enabled: true,
+                            color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white',
+                            style: {
+                                // 如果不需要数据标签阴影，可以将 textOutline 设置为 'none'
+                                textOutline: '1px 1px black'
+                            }
+                        }
+                    }
+                },
+                series:[]
+            };
+            $.ajax({
+                url: PROJECTPROCESS_URL,
+                type: 'GET',
+                data: {'start': start, 'end': end},
+                dataType: 'JSON',
+                success: function (res) {
+                    if (res.status) {
+                        console.log('cg');
+                        projectUserProcessConfig.xAxis.categories = res.data.categories;
+                        projectUserProcessConfig.series = res.data.series;
+                        Highcharts.chart('projectUserProcess', projectUserProcessConfig);
+                    }
+                }
+            })
+        }
+
+    </script>
+{% endblock %}

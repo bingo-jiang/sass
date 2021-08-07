@@ -1,0 +1,78 @@
+#nav {
+    background-color: #2b669a;
+}
+
+#brand a {
+    color: white;
+}
+
+#nav a:hover {
+    color: white;
+    background-color: #2aabd2;
+}
+
+#nav a:active {
+    color: white;
+    background-color: #2aabd2;
+}
+
+#user {
+    color: white;
+}
+
+/*下拉后的username背景色*/
+.navbar-inverse .navbar-nav > .open > a, .navbar-inverse .navbar-nav > .open > a:focus, .navbar-inverse .navbar-nav > .open > a:hover {
+    color: #2b669a;
+    background-color: #2b669a;
+}
+
+.project {
+    margin: 10px 15px;
+}
+
+.project .fa {
+    margin: 2px auto;
+    padding-right: 0;
+}
+
+#left_dropdown {
+    color: white;
+}
+
+#left_dropdown:hover {
+    color: #2aabd2;
+}
+
+.navbar-inverse .navbar-nav > li > a {
+    color: white;
+}
+
+.dropdown-menu {
+    color: black;
+}
+
+#right-content1, #right-content2, #right-content3, #right-content4 {
+    color: white;
+}
+
+.error-msg {
+    color: red;
+    position: absolute;
+    font-size: 10px;
+}
+
+#left_dropdown .dropdown-menu a {
+    color: black;
+}
+
+#left_dropdown {
+    color: white;
+}
+
+#left_dropdown:hover {
+    color: #2aabd2;
+}
+
+#login-nav .dropdown-menu a {
+    color: black;
+}

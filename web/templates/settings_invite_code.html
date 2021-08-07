@@ -1,0 +1,350 @@
+{% extends 'mother_tmp/project_basis.html' %}
+{% load static %}
+{% load strf_time %}
+{% block title %}项目设置{% endblock %}
+{% block css %}
+    <style>
+        .dropdown #left_dropdown {
+            border-bottom: 2px solid white;
+        }
+
+        #settings {
+            background-color: #2aabd2;
+        }
+
+        a:hover {
+            text-decoration: none;
+        }
+
+        #btnSetting a {
+            color: white;
+            margin: 5px 3px;
+        }
+
+
+        #addModule:hover {
+            color: #01a252;
+            cursor: pointer;
+        }
+
+        #btnSetting a:hover {
+            color: #2b669a;
+            cursor: pointer;
+        }
+
+
+        #invite_code {
+            border-left: 2px solid red;
+        }
+
+        #settings-center {
+            margin-top: 20px;
+        }
+
+        .panel-success .panel-heading {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        .panel-danger .panel-heading {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        tr {
+            cursor: pointer;
+        }
+
+        tr td {
+            line-height: 45px;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div id="settings-center" class="container-fluid">
+        <div class="col-xs-3">
+            <div class="panel panel-info">
+                <div class="panel-heading">项目配置</div>
+                <ul class="list-group">
+                    <li id="project-data" class="list-group-item">
+                        <a href="{% url 'settings' project_id=request.current.project.id %}">
+                            项目信息
+                        </a>
+                    </li>
+                    <li id="project_delete" class="list-group-item">
+                        <a href="{% url 'settings_delete' project_id=request.current.project.id %}">项目删除</a>
+                    </li>
+                    <li id="module_manage" class="list-group-item">
+                        <a href="{% url 'module' project_id=request.current.project.id %}">
+                            模块管理
+                        </a>
+                    </li>
+                    <li id="member_manage" class="list-group-item">
+                        <a href="{% url 'member' project_id=request.current.project.id %}">
+                            成员管理
+                        </a>
+                    </li>
+                    <li id="invite_code" class="list-group-item">
+                        <a href="{% url 'invite_code' project_id=request.current.project.id %}">
+                            邀请码管理
+                        </a>
+                    </li>
+
+                    <li class="list-group-item"></li>
+
+                    <li id="btnSetting" class="list-group-item">
+                        <a class="btn btn-success" data-toggle="modal" data-target="#inviteModal">
+                            邀请成员
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div id="info" class="col-xs-9">
+            <div class="invite-code-manage">
+                <div class="panel panel-success">
+                    <div class="panel-heading" style="height: 55px">
+                        <div style="line-height: 34px;">
+                            <i class="fa fa-user-circle-o" aria-hidden="true"></i>有效邀请码
+                            <span class="hide" id="code_delete_error" style="margin: 0 8px;color: #9c3328;"></span>
+                        </div>
+                        <button id="validCodeAllDelete" class="btn btn-danger code-delete" operateType="all_valid">
+                            全部清空
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-condensed">
+                            <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>邀请码</th>
+                                <th>有效期</th>
+                                <th>截止时间</th>
+                                <th>操作<span id="operate-msg1" class="hide"
+                                            style="margin: 0 10px;color: #01a252;"></span>
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in code_valid_list %}
+                                <tr>
+                                    <td>{{ item.obj.id }}</td>
+                                    <td id="url_{{ item.obj.id }}">{{ item.url }}</td>
+                                    <td>{% minute_to_hour item.obj.period %}</td>
+                                    <td>{% datetime_format item.limit_time %}</td>
+                                    <td>
+                                        <a class="btn btn-success code-copy" style="padding: 3px 3px;width: 80px"
+                                           data-clipboard-target="#url_{{ item.obj.id }}">
+                                            <i class="fa fa-clipboard" aria-hidden="true"></i>复制链接
+                                        </a>
+                                        <a class="btn btn-danger code-delete" style="padding: 3px 3px;width: 37px"
+                                           codeId="{{ item.obj.id }}" operateType="one">
+                                            <i class="fa fa-trash-o" aria-hidden="true"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <hr style="border: 1px solid #8c8c8c;width: 100%;"/>
+                </div>
+                <div class="panel panel-danger">
+                    <div class="panel-heading" style="height: 55px">
+                        <div style="line-height: 34px;">
+                            <i class="fa fa-user-circle-o" aria-hidden="true"></i>过期邀请码
+                            <span class="hide" id="code_delete_error" style="margin: 0 8px;color: #9c3328;"></span>
+                        </div>
+                        <button id="expireCodeAllDelete" class="btn btn-danger code-delete" operateType="all_expire">
+                            全部清空
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-condensed">
+                            <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>邀请码</th>
+                                <th>有效期</th>
+                                <th>截止时间</th>
+                                <th>操作
+                                    <span id="operate-msg2" class="hide"
+                                          style="margin-left: 6px;color: #01a252;width: 20px;"></span>
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in code_expire_list %}
+                                <tr>
+                                    <td>{{ item.obj.id }}</td>
+                                    <td id="url_{{ item.obj.id }}">{{ item.url }}</td>
+                                    <td>{% minute_to_hour item.obj.period %}</td>
+                                    <td>{% datetime_format item.limit_time %}</td>
+                                    <td>
+                                        <a class="btn btn-danger code-copy" style="padding: 3px 3px;width: 80px"
+                                           data-clipboard-target="#url_{{ item.obj.id }}">
+                                            <i class="fa fa-ban" aria-hidden="true"></i>复制链接
+                                        </a>
+                                        <a class="btn btn-danger code-delete" style="padding: 3px 3px;width: 37px"
+                                           codeId="{{ item.obj.id }}" operateType="one">
+                                            <i class="fa fa-trash-o" aria-hidden="true"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 邀请成员Modal -->
+        <div class="modal fade" id="inviteModal" tabindex="-1" role="dialog"
+             aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"
+                                aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel">项目成员邀请</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form id="invite-form" class="form-horizontal">{% csrf_token %}
+                            {% for item in invite_form %}
+                                <div class="form-group" style="width: 96%;margin: 10px auto;">
+                                    <label for="{{ item.id_for_label }}">{{ item.label }}</label>
+                                    <span style="color: #8c8c8c;">
+                                        {% if item.help_text %}{{ item.help_text }}{% endif %}
+                                    </span>
+                                    {{ item }}
+                                    <div class="error-msg"></div>
+                                </div>
+                            {% endfor %}
+                        </form>
+                        <button id="getInviteCode" class="btn btn-danger" style="margin-left: 80%;">
+                            生成邀请码
+                        </button>
+                    </div>
+                    <div class="hide" id="inviteCodeArea">
+                        <hr style="margin-bottom: 15px;margin-top: 0;">
+                        <div class="form-group" style="margin: 10px auto;width: 96%;">
+                            <div class="input-group">
+                                <div class="input-group-btn">
+                                    <label>
+                                        <input type="button" value="链接" class="btn btn-default">
+                                    </label>
+                                </div>
+                                <label for="inviteCode"></label>
+                                <input type="text" class="form-control" id="inviteCode">
+                                <div class="input-group-btn">
+                                    <label>
+                                        <input type="button" value="复制链接" class="btn btn-info"
+                                               id="copyCode">
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <label for="forCopy"></label><input type="text" id="forCopy" class="hide">
+    </div>
+{% endblock %}
+{% block js %}
+    <script src="{% static 'plugins/clipboard/js/clipboard.min.js' %}"></script>
+    <script>
+        var INVITE_URL = "{% url 'invite' project_id=request.current.project.id %}";
+        var DELETE_URL = "{% url 'invite_code_delete' project_id=request.current.project.id %}";
+        $(function () {
+            bindBtngetInviteCode();
+            bindcopyCode();
+            codeDeleteBtn();
+        });
+
+        //复制链接
+        function bindcopyCode() {
+            $('#copyCode').click(function () {
+                var urlTxet = $('#inviteCode')[0];
+                urlTxet.select();
+                document.execCommand('Copy');
+                alert('复制成功');
+            })
+        }
+
+        //生成邀请码
+        function bindBtngetInviteCode() {
+            $('#getInviteCode').click(function () {
+                $.ajax({
+                    url: INVITE_URL,
+                    type: 'POST',
+                    data: $('#invite-form').serialize(),
+                    dataType: 'JSON',
+                    success: function (res) {
+                        if (res.status) {
+                            console.log(res.data);
+                            $('#inviteCodeArea').removeClass('hide').find('#inviteCode').val(res.data);
+                        } else {
+                            console.log(res.error);
+                            $.each(res.error, function (key, value) {
+                                $("#id_" + key).next('.error-msg').text(value[0]);
+                            })
+                        }
+                    }
+                })
+            })
+        }
+
+        //邀请码删除按钮点击事件
+        function codeDeleteBtn() {
+            $('.code-delete').click(function () {
+                var codeId = $(this).attr('codeId');
+                var operateType = $(this).attr('operateType');
+                $.ajax({
+                    url: DELETE_URL,
+                    type: 'GET',
+                    data: {'codeId': codeId, 'operateType': operateType},
+                    dataType: 'JSON',
+                    success: function (res) {
+                        if (res.status) {
+                            console.log(res.status);
+                            location.reload();
+                        } else {
+                            $('#code_delete_error').removeClass('hide').text(res.data);
+                            var timeCount1 = setInterval(function () {
+                                $err_msg.addClass('hide');
+                                if ($err_msg.hasClass('hide')) {
+                                    clearInterval(timeCount1);
+                                }
+                            }, 3000)
+                        }
+                    }
+                })
+            })
+        }
+
+
+        var clipBoard = new ClipboardJS('.code-copy');
+        clipBoard.on('success', function (e) {
+            console.log('Cg');
+            e.clearSelection();
+            var $copyMsg = $('#operate-msg1');
+            $copyMsg.removeClass('hide').text('复制成功');
+            var timeCount2 = setInterval(function () {
+                $copyMsg.addClass('hide');
+                if ($copyMsg.hasClass('hide')) {
+                    clearInterval(timeCount2);
+                }
+            }, 3000);
+        });
+        clipBoard.on('error', function (e) {
+            console.log('error')
+        });
+
+    </script>
+{% endblock %}

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+{% load static %}
+{% load projecttags %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+
+    <link rel="stylesheet" href="{% static '/plugins/bootstrap-3.3.7-dist/css/bootstrap.css' %}">
+    <link rel="stylesheet" href="{% static '/plugins/bootstrap-3.3.7-dist/css/bootstrap.min.css.map' %}">
+    <link rel="stylesheet" href="{% static '/plugins/font-awesome-4.7.0/css/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static '/css/project_basis.css' %}">
+    <link rel="stylesheet" href="{% static 'css/project_list.css' %}">
+    <link rel="shortcut icon" href="{% static '/imgs/favicon.ico' %}" type="image/x-icon"/>
+    <style>
+        .nav li {
+            margin: auto 5px;
+        }
+    </style>
+    {% block css %}{% endblock %}
+</head>
+<body>
+<nav class="navbar navbar-inverse" id="nav">
+    <div class="container-fluid">
+        <div class="navbar-header" id="brand">
+            <a class="navbar-brand" href="{% url 'index' %}">SASS平台</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav" id="left_dropdown">
+                <li><a id="right-content4" href="{% url 'project_list' %}">项目管理</a></li>
+                <li class="dropdown">
+                    <a id="left_dropdown" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                       aria-haspopup="true"
+                       aria-expanded="false">
+                        {% if request.current.project %}
+                            ({{ request.current.project.name }})<span class="caret"></span>
+                        {% else %}
+                            项目 <span class="caret"></span>
+                        {% endif %}
+                    </a>
+                    {% all_project_list request %}
+                </li>
+
+                {% if request.current.project %}
+                    <li id="dashborde"><a href="{% url 'dashborde' project_id=request.current.project.id %}">概览</a></li>
+                    <li id="statistic"><a href="{% url 'statistic' project_id=request.current.project.id %}">统计</a></li>
+                    <li id="issues"><a href="{% url 'issues' project_id=request.current.project.id %}">问题</a></li>
+                    <li id="wiki_index"><a href="{% url 'wiki_index' project_id=request.current.project.id %}">wiki</a>
+                    </li>
+                    <li id="file_home"><a href="{% url 'file_home' project_id=request.current.project.id %}">文件</a></li>
+                    <li id="settings"><a href="{% url 'settings' project_id=request.current.project.id %}">配置</a></li>
+                {% endif %}
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a id="right-content2" href="#">
+                    <i class="fa fa-commenting-o" aria-hidden="true"></i>消息</a>
+                </li>
+                {#                <li id="right-content3"><a href="#">|</a></li>#}
+                {#                <li><a id="right-content4" href="{% url 'project_list' %}">项目管理</a></li>#}
+                {% if not request.current.user %}
+                    <li id="right-content"><a id="right-content5" href="{% url 'login' %}">登录</a></li>
+                    <li id="right-content"><a id="right-content6" href="{% url 'register' %}">注册</a></li>
+                {% else %}
+                    <li class="dropdown" id="login-nav">
+                        <a id="user" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                           aria-haspopup="true" aria-expanded="false">
+                            <i class="fa fa-user-o" aria-hidden="true" style="margin-right: 1px;"></i>
+                            {{ request.current.user.username }}
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{% url 'index' %}">官网首页</a></li>
+                            <li><a href="{% url 'project_list' %}">项目管理</a></li>
+                            <li><a href="{% url 'user_center' %}">用户设置</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="{% url 'logout' %}">退出登录</a></li>
+                        </ul>
+                    </li>
+                {% endif %}
+            </ul>
+        </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+</nav>
+
+{% block content %}{% endblock %}
+
+<script src="{% static '/js/jquery-3.6.0.min.js' %}"></script>
+<script src="{% static '/plugins/bootstrap-3.3.7-dist/js/bootstrap.min.js' %}"></script>
+{% block js %}{% endblock %}
+<script>
+    {#    {% if messages %}#}
+    {#        {% for message in messages %}#}
+    {#            alert('{{ message }}');#}
+    {#        {% endfor %}#}
+    {#    {% endif %}#}
+</script>
+</body>
+</html>

@@ -1,0 +1,336 @@
+{% extends 'mother_tmp/project_basis.html' %}
+{% load static %}
+{% load age_compute %}
+{% load strf_time %}
+{% block title %}项目设置{% endblock %}
+{% block css %}
+    <style>
+        .dropdown #left_dropdown {
+            border-bottom: 2px solid white;
+        }
+
+        #settings {
+            background-color: #2aabd2;
+        }
+
+        a:hover {
+            text-decoration: none;
+        }
+
+        #btnSetting a {
+            color: white;
+            margin: 5px 3px;
+        }
+
+
+        #addModule:hover {
+            color: #01a252;
+            cursor: pointer;
+        }
+
+        #btnSetting a:hover {
+            color: #2b669a;
+            cursor: pointer;
+        }
+
+
+        #member_manage {
+            border-left: 2px solid red;
+        }
+
+        #settings-center {
+            margin-top: 20px;
+        }
+
+        .panel-info .panel-heading {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        tr td {
+            line-height: 45px;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div id="settings-center" class="container-fluid">
+        <div class="col-xs-3">
+            <div class="panel panel-info">
+                <div class="panel-heading">项目配置</div>
+                <ul class="list-group">
+                    <li id="project-data" class="list-group-item">
+                        <a href="{% url 'settings' project_id=request.current.project.id %}">
+                            项目信息
+                        </a>
+                    </li>
+                    <li id="project_delete" class="list-group-item">
+                        <a href="{% url 'settings_delete' project_id=request.current.project.id %}">项目删除</a>
+                    </li>
+                    <li id="module_manage" class="list-group-item">
+                        <a href="{% url 'module' project_id=request.current.project.id %}">
+                            模块管理
+                        </a>
+                    </li>
+                    <li id="member_manage" class="list-group-item">
+                        <a href="{% url 'member' project_id=request.current.project.id %}">
+                            成员管理
+                        </a>
+                    </li>
+                    <li id="invite_code" class="list-group-item">
+                        <a href="{% url 'invite_code' project_id=request.current.project.id %}">
+                            邀请码管理
+                        </a>
+                    </li>
+
+                    <li class="list-group-item"></li>
+
+                    <li id="btnSetting" class="list-group-item">
+                        <a class="btn btn-success" data-toggle="modal" data-target="#inviteModal">
+                            邀请成员
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div id="info" class="col-xs-9">
+            <div class="member-manage">
+                <div class="panel panel-info">
+                    <div class="panel-heading" style="height: 55px">
+                        <div style="line-height: 34px;">
+                            <i class="fa fa-user-circle-o" aria-hidden="true"></i>项目创建者
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-condensed">
+                            <thead>
+                            <tr>
+                                <th>账号</th>
+                                <th>昵称</th>
+                                <th>年龄</th>
+                                <th>性别</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>{{ project_creator_obj.creator.username }}</td>
+                                <td>{{ project_creator_obj.creator.nickname }}</td>
+                                <td>{% compute project_creator_obj.creator.birday %}</td>
+                                <td>{{ project_creator_obj.creator.get_sex_display }}</td>
+                                <td>{% trans_time project_creator_obj.create_time %}</td>
+                                <td><i class="fa fa-ban" aria-hidden="true" style="color: #9c3328;font-size: 16px;"></i>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <hr style="border: 1px solid #8c8c8c;width: 100%;"/>
+                </div>
+                <div class="panel panel-info">
+                    <div class="panel-heading" style="height: 55px">
+                        <div style="line-height: 34px;">
+                            <i class="fa fa-user-circle-o" aria-hidden="true"></i>项目成员
+                            <span style="margin-left: 20px;color: green;" class="hide" id="member_manage_msg">
+                                成功剔除该成员
+                            </span>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-condensed">
+                            <thead>
+                            <tr>
+                                <th>账号</th>
+                                <th>昵称</th>
+                                <th>年龄</th>
+                                <th>性别</th>
+                                <th>加入时间</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in member_obj %}
+                                <tr>
+                                    <td>{{ item.user.username }}</td>
+                                    <td>{{ item.user.nickname }}</td>
+                                    <td>{% compute item.user.birday %}</td>
+                                    <td>{{ item.user.get_sex_display }}</td>
+                                    <td>{% trans_time item.create_time %}</td>
+                                    <td>
+                                        <button class="btn btn-danger" style="padding: 3px 3px;width: 37px"
+                                                data-toggle="modal"
+                                                data-target="#deleteModal"
+                                                data-id="{{ item.id }}">
+                                            <i class="fa fa-trash-o" aria-hidden="true"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--剔除成员确认警告框-->
+        <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog"
+             aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="alert alert-danger alert-dismissible fade in" role="alert">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span></button>
+                    <h4>注意!</h4>
+                    <p>你正在进行项目成员剔除操作,只有项目创建者才能进行此操作。请确认是否操作</p>
+                    <p style="text-align: right;">
+                        <span style="margin-right: 20px;color: red;" class="hide" id="member_manage_err_msg"></span>
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">取消</button>
+                        <button id="deleteBtn" type="button" class="btn btn-default">确定</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <!-- 邀请成员Modal -->
+        <div class="modal fade" id="inviteModal" tabindex="-1" role="dialog"
+             aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"
+                                aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel">项目成员邀请</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form id="invite-form" class="form-horizontal">{% csrf_token %}
+                            {% for item in invite_form %}
+                                <div class="form-group" style="width: 96%;margin: 10px auto;">
+                                    <label for="{{ item.id_for_label }}">{{ item.label }}</label>
+                                    <span style="color: #8c8c8c;">
+                                        {% if item.help_text %}{{ item.help_text }}{% endif %}
+                                    </span>
+                                    {{ item }}
+                                    <div class="error-msg"></div>
+                                </div>
+                            {% endfor %}
+                        </form>
+                        <button id="getInviteCode" class="btn btn-danger" style="margin-left: 80%;">
+                            生成邀请码
+                        </button>
+                    </div>
+                    <div class="hide" id="inviteCodeArea">
+                        <hr style="margin-bottom: 15px;margin-top: 0;">
+                        <div class="form-group" style="margin: 10px auto;width: 96%;">
+                            <div class="input-group">
+                                <div class="input-group-btn">
+                                    <label>
+                                        <input type="button" value="链接" class="btn btn-default">
+                                    </label>
+                                </div>
+                                <label for="inviteCode"></label>
+                                <input type="text" class="form-control" id="inviteCode">
+                                <div class="input-group-btn">
+                                    <label>
+                                        <input type="button" value="复制链接" class="btn btn-info"
+                                               id="copyCode">
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+    <script>
+        var INVITE_URL = "{% url 'invite' project_id=request.current.project.id %}";
+        var MemberDeleteUrl = "{% url 'member_delete' project_id=request.current.project.id %}";
+        $(function () {
+            bindBtngetInviteCode();
+            bindcopyCode();
+            initDeleteModel();
+        });
+
+        //复制链接
+        function bindcopyCode() {
+            $('#copyCode').click(function () {
+                var urlTxet = $('#inviteCode')[0];
+                urlTxet.select();
+                document.execCommand('Copy');
+                alert('复制成功');
+            })
+        }
+
+        //生成邀请码
+        function bindBtngetInviteCode() {
+            $('#getInviteCode').click(function () {
+                $.ajax({
+                    url: INVITE_URL,
+                    type: 'POST',
+                    data: $('#invite-form').serialize(),
+                    dataType: 'JSON',
+                    success: function (res) {
+                        if (res.status) {
+                            console.log(res.data);
+                            $('#inviteCodeArea').removeClass('hide').find('#inviteCode').val(res.data);
+                        } else {
+                            console.log(res.error);
+                            $.each(res.error, function (key, value) {
+                                $("#id_" + key).next('.error-msg').text(value[0]);
+                            })
+                        }
+                    }
+                })
+            })
+        }
+
+
+        //删除确认警告框
+        function initDeleteModel() {
+            $('#deleteModal').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget);
+                var memberId = button.data('id');
+                $('#deleteBtn').attr('memberId', memberId)
+            });
+            clickdeleteBtn();
+
+            /*删除成员确认按钮事件*/
+            function clickdeleteBtn() {
+                $('#deleteBtn').click(function () {
+                    $.ajax({
+                        url: MemberDeleteUrl,
+                        type: 'GET',
+                        data: {'memberId': $(this).attr('memberId')},
+                        success: function (res) {
+                            if (res.status) {
+                                //location.href=location.href;
+                                parent.location.reload();
+                                var $msg = $("#member_manage_msg");
+                                $msg.removeClass('hide');
+                                var timeCount1 = setInterval(function () {
+                                    $msg.addClass('hide');
+                                    if ($msg.hasClass('hide')) {
+                                        clearInterval(timeCount1);
+                                    }
+                                }, 3000)
+                            } else {
+                                var $err_msg = $("#member_manage_err_msg");
+                                $err_msg.removeClass('hide').text(res.data);
+                                var timeCount2 = setInterval(function () {
+                                    $err_msg.addClass('hide');
+                                    if ($err_msg.hasClass('hide')) {
+                                        clearInterval(timeCount2);
+                                    }
+                                }, 3000)
+                            }
+                        }
+                    })
+                });
+            }
+        }
+    </script>
+{% endblock %}

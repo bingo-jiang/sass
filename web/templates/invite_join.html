@@ -1,0 +1,23 @@
+{% extends 'mother_tmp/project_basis.html' %}
+{% load static %}
+{% block title %}项目加入{% endblock %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'plugins/daterangepicker/daterangepicker.css' %}">
+{% endblock %}
+{% block content %}
+    <div>
+        {% if error %}
+            <div class="alert alert-danger no-radius">
+                <h4><i class="fa fa-exclamation-triangle" aria-hidden="true"></i> {{ error }}</h4>
+            </div>
+        {% else %}
+            <div class="alert alert-success no-radius" style="text-align: center;font-size: 16px;">
+                <h4>
+                    <i class="fa fa-check-circle" aria-hidden="true"></i>
+                    {{ request.current.user.username }}成功加入 {{ invite_obj.project.name }}
+                </h4>
+                <a href="{% url 'project_list' %}">点击返回项目列表</a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

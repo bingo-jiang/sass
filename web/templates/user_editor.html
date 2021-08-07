@@ -1,0 +1,132 @@
+{% extends 'mother_tmp/project_basis.html' %}
+{% load static %}
+{% block title %}用戶资料修改{% endblock %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'plugins/bootstrap-datepicker/css/bootstrap-datepicker.min.css' %}">
+    <style>
+        #user-center {
+            display: inline;
+            align-content: center;
+        }
+
+        #user-menue {
+            text-align: center;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        #my-info a, #change-info a, #change-pwd a, #my-data a:hover {
+            text-decoration: none;
+        }
+
+        #change-pwd:hover {
+            background-color: #f2dede;
+        }
+
+        .user-info {
+            padding: 0 20px;
+        }
+
+        #username, #phone, #email, #address, #nickname, #sex, #age, #birth {
+            border-bottom: none;
+            vertical-align: center;
+            color: black;
+            font-size: 15px;
+            padding: 10px 0;
+        }
+
+        .width-10px {
+            width: 80px;
+            text-align: right;
+        }
+
+        #user-data li p {
+            display: inline-block;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div id="user-center" class="container clearfix">
+        <div class="col-md-2"></div>
+        <div id="info-menue" class="col-md-2">
+            <div id="user-menue">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">用户中心</div>
+                    <ul class="list-group">
+                        <li id="my-info" class="list-group-item"><a href="{% url 'user_center' %}">用户信息</a></li>
+                        <li id="change-info" class="list-group-item">
+                            <a href="{% url 'user_editor' %}">完善信息</a>
+                        </li>
+                        <li class="list-group-item" style="height: 2px;margin: 0 auto;padding: 0 15px;"></li>
+                        <li id="change-pwd" class="list-group-item">
+                            <a href="{% url 'user_alter_pwd' %}">修改密码</a>
+                        </li>
+                        <li id="my-data" class="list-group-item"><a href="">其他</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div id="info" class="col-md-6">
+            <div class="user-info">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <i class="fa fa-address-card-o" aria-hidden="true" style="margin-right:2px;"></i>资料完善
+                    </div>
+                    <div style="margin: 10px 10px;">
+                        <form id="userForm" method="POST" action="{% url 'user_editor' %}" novalidate>
+                            {% csrf_token %}
+                            {% for field in form %}
+                                {% if field.name == 'birday' %}
+                                    <label for="{{ form.birday.id_for_label }}">
+                                        {{ form.birday.label }}
+                                    </label>
+                                    <div class="input-group">
+                                        <div class="input-group-addon">
+                                            <i class="fa fa-calendar" aria-hidden="true"></i>
+                                        </div>
+                                        {{ form.birday }}
+                                    </div>
+                                    <div class="error-msg"></div>
+                                {% else %}
+                                    <div class="form-group">
+                                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                        {{ field }}
+                                        <span class="error-msg">{{ field.errors.0 }}</span>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                            <div class="clearfix">
+                                <div class="col-md-10"></div>
+                                <input type="submit" value="确定修改" class="btn btn-primary col-md-2">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2"></div>
+    </div>
+{% endblock %}
+{% block js %}
+    <script src="{% static 'plugins/bootstrap-datepicker/js/bootstrap-datepicker.min.js' %}">
+    </script>
+    <script src="{% static 'plugins/bootstrap-datepicker/locales/bootstrap-datepicker.zh-CN.min.js' %}">
+    </script>
+    <script>
+        //初始化日期选择器
+        $(function () {
+            initDatePicker();
+        });
+
+        function initDatePicker() {
+            $('#id_birday').datepicker({
+                format: 'yyyy-mm-dd',
+                startDate: 0,
+                language: 'zh-CN',
+                autoclose: true,
+            });
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'mother_tmp/project_basis.html' %}
+{% load static %}
+{% block title %}项目文件{% endblock %}
+{#/*样式*/#}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'plugins/select2/css/select2.css' %}">
+    <link rel="stylesheet" href="{% static 'css/file.css' %}">
+    <style>
+    img{
+        width: 600px;
+    }
+    #img-box{
+        margin: 0 auto;
+        width: 1800px;
+    }
+    </style>
+{% endblock %}
+{#/*内容*/#}
+{% block content %}
+    <div class="container-fluid" style="margin:0 auto;overflow: hidden;width: 600px;position: relative;">
+    <div id="img-box">
+        <img src="https://img.zcool.cn/community/01efbd583806f6a8012060c84ddec8.jpg@1280w_1l_2o_100sh.jpg" alt="*">
+        <img src="http://www.4kjia.com/uploads/litimg/c20184/1525179897442.jpg" alt="泳装美女">
+        <img src="https://img.zcool.cn/community/01494a5af5ce5aa801216045b5dd52.jpg@1280w_1l_2o_100sh.jpg"
+             alt="美女BIANSHI">
+    </div>
+        <ul id="ul1">
+            <li>1</li>
+            <li>2</li>
+        </ul>
+    <button class="btn btn-primary" id="addLi">添加li标签</button>
+    </div>
+{% endblock %}
+{#/*js代码块*/#}
+{% block js %}
+    <script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
+
+    <script>
+    //jQuery练习
+        /*$(function () {
+            var $div=$('div');
+            //$('div').attr('class','hello');//覆盖原class
+            $div.addClass('abc');//在原class上添加额外的class
+            $div.toggleClass('abc');
+            var $panelheading=$('.panel-body');
+            $panelheading.append('<h3 class="panel-title">\n' +
+                '                        <i class="fa fa-search" aria-hidden="true" style="margin-right: 5px;"></i>筛选选项\n' +
+                '                    </h3>')
+        });*/
+        var $ul1=$('#ul1');
+        $('#addLi').click(function () {
+            $ul1.append('<li>new li</li>');
+        });
+        $ul1.on('click','li',(function () {
+            $(this).css('background-color','red')
+        }));
+        $ul1.on('dblclick','li',(function () {
+            $(this).removeAttr('style',{'background-color':'red'})
+        }))
+    </script>
+{% endblock %}

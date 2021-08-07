@@ -1,0 +1,192 @@
+{% extends 'mother_tmp/project_basis.html' %}
+{% load static %}
+{% block title %}项目wiki{% endblock %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'css/wiki.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/mdeditor/css/editormd.preview.min.css' %}">
+    <style>
+        .dropdown #left_dropdown {
+            border-bottom: 2px solid white;
+        }
+
+        #wiki_index {
+            background-color: #2aabd2;
+        }
+
+        .panel-default .panel-heading {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+
+        }
+
+        .title-list {
+            min-height: 400px;
+            border-right: 1px solid #8c8c8c;
+        }
+
+        .content {
+            min-height: 800px;
+            border-left: 1px solid #8c8c8c;
+            margin-left: -1px;
+        }
+
+        .addWiki {
+            font-size: 20px;
+            text-decoration: none;
+        }
+
+        .addWiki:hover {
+            text-decoration: none;
+        }
+
+        .addWiki:visited {
+            text-decoration: none;
+        }
+
+        .wiki-content {
+            text-align: center;
+        }
+
+        .head h3 {
+            font-size: 20px;
+            line-height: 34px;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container-fluid">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <div class="head">
+                    <h3 class="panel-title"><i class="fa fa-book" aria-hidden="true"></i>wiki文档</h3>
+                </div>
+                <div class="function">
+                    <a id="btn0" class="btn-primary btn"
+                       href="{% url 'wiki_add' project_id=request.current.project.id %}">
+                        <i class="fa fa-plus-square" aria-hidden="true" style="margin-right: 3px;"></i>
+                        新建
+                    </a>
+                    {% if wiki_text_obj %}
+                        <p id="wiki-id" hidden>{{ wiki_text_obj.id }}</p>
+                        <a id="btn1" class="btn-success btn"
+                           href="{% url 'wiki_edit' textId=wiki_text_obj.id  project_id=request.current.project.id %}">
+                            <i class="fa-pencil-square-o fa" aria-hidden="true" style="margin-right: 3px;"></i>
+                            编辑
+                        </a>
+                        <a id="btn2" class="btn-danger btn" href="" data-toggle="modal" data-target="#myModal">
+                            <i class="fa fa-trash-o" aria-hidden="true" style="margin-right: 3px;"></i>
+                            删除
+                        </a>
+                        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal"
+                                                aria-label="Close"><span
+                                                aria-hidden="true">&times;</span></button>
+                                        <h4 class="modal-title" id="myModalLabel">操作确认</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>
+                                            你正在进行文档的删除操作，请确认是否进行删除。
+                                            <br>
+                                            <br>
+                                            <span style="color: red">注意：文档一经删除，无法找回</span>
+                                        </p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                                        <a href="{% url 'wiki_delete' textId=wiki_text_obj.id  project_id=request.current.project.id %}"
+                                           id="btnSure" type="button" class="btn btn-primary">确定</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="col-md-3 title-list">
+                    <h5>目录</h5>
+                    <ul id="cataLog">
+                    </ul>
+                </div>
+                <div class="col-md-9 content">
+                    {% if not wiki_text_obj %}
+                        <div class="wiki-content">
+                            <h3>《{{ request.current.project.name }}》项目wiki文档库</h3>
+                            <a class="addWiki" href="{% url 'wiki_add' project_id=request.current.project.id %}">
+                                <i class="fa fa-plus-square" aria-hidden="true" style="margin-right: 3px;"></i>
+                                新建文档
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="wiki-content">
+                            <div id="wiki-title" style="text-align: center;color: #2aabd2;font-size: 32px;">
+                                {{ wiki_text_obj.title }}
+                            </div>
+                            <div id="preview-markdown">
+                                <label for="wiki-content"></label><textarea
+                                    id="wiki-content">{{ wiki_text_obj.content }}</textarea>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+    <script src="{% static 'plugins/mdeditor/editormd.min.js' %}"></script>
+    <script src="{% static 'plugins/mdeditor/lib/flowchart.min.js' %}"></script>
+    <script src="{% static 'plugins/mdeditor/lib/jquery.flowchart.min.js' %}"></script>
+    <script src="{% static 'plugins/mdeditor/lib/marked.min.js' %}"></script>
+    <script src="{% static 'plugins/mdeditor/lib/prettify.min.js' %}"></script>
+    <script src="{% static 'plugins/mdeditor/lib/raphael.min.js' %}"></script>
+    <script src="{% static 'plugins/mdeditor/lib/sequence-diagram.min.js' %}"></script>
+    <script src="{% static 'plugins/mdeditor/lib/underscore.min.js' %}"></script>
+
+    <script>
+
+        var wikiTextUrl = "{% url 'wiki_index' project_id=request.current.project.id %}";
+        /*目录查询事件*/
+        $(function () {
+            initCataLog();
+            initPreviewMdEditor();
+        });
+
+        /*初始化编辑器*/
+        function initPreviewMdEditor() {
+            editormd.markdownToHTML('preview-markdown', {
+                htmlDecode: "script,iframe,style",
+            })
+        }
+
+        /*加载目录事件*/
+        function initCataLog() {
+            $.ajax({
+                url: "{% url 'wiki_catalog' project_id=request.current.project.id %}",
+                type: "GET",
+                dataType: "JSON",
+                success: function (res) {
+                    if (res.data) {
+                        $.each(res.data, function (index, item) {
+                            var href = wikiTextUrl + "?textId=" + item.id;
+                            var li = $("<li>").attr("id", "id_" + item.id).append($("<a>").text(item.title).attr('href', href)).append("<ul>");
+                            if (!item.parent_id) {
+                                $('#cataLog').append(li);
+                            } else {
+                                $("#id_" + item.parent_id).children('ul').append(li);
+                            }
+                        })
+                    } else {
+                        alert('目录加载失败');
+                    }
+                }
+            })
+        }
+
+
+    </script>
+{% endblock %}

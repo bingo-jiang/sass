@@ -1,0 +1,39 @@
+.panel-default .panel-heading {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+}
+
+.title-list {
+    min-height: 400px;
+    border-right: 1px solid #8c8c8c;
+}
+
+.content {
+    min-height: 800px;
+    border-left: 1px solid #8c8c8c;
+    margin-left: -1px;
+}
+
+.addWiki {
+    font-size: 20px;
+    text-decoration: none;
+}
+
+.addWiki:hover {
+    text-decoration: none;
+}
+
+.addWiki:visited {
+    text-decoration: none;
+}
+
+.wiki-content {
+    text-align: center;
+}
+
+.head h3 {
+    font-size: 20px;
+    line-height: 34px;
+}

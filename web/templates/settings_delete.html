@@ -1,0 +1,224 @@
+{% extends 'mother_tmp/project_basis.html' %}
+{% load static %}
+{% block title %}项目设置{% endblock %}
+{% block css %}
+    <style>
+        .dropdown #left_dropdown {
+            border-bottom: 2px solid white;
+        }
+
+        #settings {
+            background-color: #2aabd2;
+        }
+
+        a:hover {
+            text-decoration: none;
+        }
+
+        #project_delete {
+            border-left: 2px solid red;
+        }
+
+
+        #inviteUser a {
+            color: #01a252;
+        }
+
+        #inviteUser a:hover {
+            color: #2b669a;
+            cursor: pointer;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div id="settings-center" class="container-fluid clearfix">
+        <div id="settings-menue" class="col-xs-3">
+            <div class="panel panel-info">
+                <div class="panel-heading">项目配置</div>
+                <ul class="list-group">
+                    <li id="project-data" class="list-group-item">
+                        <a href="{% url 'settings' project_id=request.current.project.id %}">
+                            项目信息
+                        </a>
+                    </li>
+                    <li id="project_delete" class="list-group-item">
+                        <a href="{% url 'settings_delete' project_id=request.current.project.id %}">项目删除</a>
+                    </li>
+                    <li id="module_manage" class="list-group-item">
+                        <a href="{% url 'module' project_id=request.current.project.id %}">
+                            模块管理
+                        </a>
+                    </li>
+                    <li id="member_manage" class="list-group-item">
+                        <a href="{% url 'member' project_id=request.current.project.id %}">
+                            成员管理
+                        </a>
+                    </li>
+                    <li id="invite_code" class="list-group-item">
+                        <a href="{% url 'invite_code' project_id=request.current.project.id %}">
+                            邀请码管理
+                        </a>
+                    </li>
+
+                    <li class="list-group-item"></li>
+
+                    <li id="btnSetting" class="list-group-item">
+                        <a class="btn btn-success" data-toggle="modal" data-target="#inviteModal">
+                            邀请成员
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div id="delete" class="col-xs-9">
+            <div class="user-info">
+                <div class="panel panel-danger">
+                    <div class="panel-heading" style="font-size: 16px;color: red;">
+                        <i class="fa fa-trash" aria-hidden="true"></i>项目删除
+                    </div>
+                    <p style="margin: 10px auto;">
+                        注意：项目删除后，所属项目的数据也会被删除!
+                        <span style="color: red">请谨慎选择是否删除项目。</span>
+                    </p>
+                    <div class="panel-body" style="text-align: center;margin: 30px auto;">
+                        <form class="form-inline" method="POST" action="settings_delete.html" style="width: 100%">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="project_name" style="margin-right: 10px;">项目名:</label>
+                                <input type="text" class="form-control" id="project_name" name="project_name"
+                                       placeholder="所要删除的项目名">
+                            </div>
+                            <button type="submit" class="btn btn-danger" style="margin-left: 10px">删除</button>
+                            <div style="display: block;margin: 10px auto;color: red;">
+                                <span>{% if error %}{{ error }}{% endif %}</span>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 邀请成员Modal -->
+    <div class="modal fade" id="inviteModal" tabindex="-1" role="dialog"
+         aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">项目成员邀请</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="invite-form" class="form-horizontal">{% csrf_token %}
+                        {% for item in invite_form %}
+                            <div class="form-group" style="width: 96%;margin: 10px auto;">
+                                <label for="{{ item.id_for_label }}">{{ item.label }}</label>
+                                <span style="color: #8c8c8c;">
+                                                        {% if item.help_text %}{{ item.help_text }}{% endif %}
+                                                    </span>
+                                {{ item }}
+                                <div class="error-msg"></div>
+                            </div>
+                        {% endfor %}
+                    </form>
+                    <button id="getInviteCode" class="btn btn-danger" style="margin-left: 80%;">
+                        生成邀请码
+                    </button>
+                </div>
+                <div class="hide" id="inviteCodeArea">
+                    <hr style="margin-bottom: 15px;margin-top: 0;">
+                    <div class="form-group" style="margin: 10px auto;width: 96%;">
+                        <div class="input-group">
+                            <div class="input-group-btn">
+                                <label>
+                                    <input type="button" value="链接" class="btn btn-default">
+                                </label>
+                            </div>
+                            <label for="inviteCode"></label>
+                            <input type="text" class="form-control" id="inviteCode">
+                            <div class="input-group-btn">
+                                <label>
+                                    <input type="button" value="复制链接" class="btn btn-info"
+                                           id="copyCode">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 问题模块Modal -->
+    <div class="modal fade" id="ModuleModal" tabindex="-1" role="dialog"
+         aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                            aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">问题模块添加</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="module-form" class="form-horizontal">{% csrf_token %}
+                        {% for item in module_form %}
+                            <div class="form-group" style="width: 96%;margin: 10px auto;">
+                                <label for="{{ item.id_for_label }}">{{ item.label }}</label>
+                                {{ item }}
+                                <div class="error-msg"></div>
+                            </div>
+                        {% endfor %}
+                    </form>
+                    <div class="msg" style="margin: 0 auto;color: green;text-align: center;"></div>
+                    <button id="addModuleBtn" class="btn btn-primary clearfix" style="margin-left: 88%;">
+                        添加
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+    <script>
+        var INVITE_URL = "{% url 'invite' project_id=request.current.project.id %}";
+        $(function () {
+            bindBtngetInviteCode();
+            bindcopyCode();
+        });
+
+        //复制链接
+        function bindcopyCode() {
+            $('#copyCode').click(function () {
+                var urlTxet = $('#inviteCode')[0];
+                urlTxet.select();
+                document.execCommand('Copy');
+                alert('复制成功');
+            })
+        }
+
+        //生成邀请码
+        function bindBtngetInviteCode() {
+            $('#getInviteCode').click(function () {
+                $.ajax({
+                    url: INVITE_URL,
+                    type: 'POST',
+                    data: $('#invite-form').serialize(),
+                    dataType: 'JSON',
+                    success: function (res) {
+                        if (res.status) {
+                            console.log(res.data);
+                            $('#inviteCodeArea').removeClass('hide').find('#inviteCode').val(res.data);
+                        } else {
+                            console.log(res.error);
+                            $.each(res.error, function (key, value) {
+                                $("#id_" + key).next('.error-msg').text(value[0]);
+                            })
+                        }
+                    }
+                })
+            })
+        }
+
+    </script>
+{% endblock %}

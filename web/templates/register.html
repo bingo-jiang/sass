@@ -1,0 +1,128 @@
+{% extends 'mother_tmp/basic.html' %}
+{% load static %}
+{% block css %}
+<link rel="stylesheet" href="{% static '/css/common.css' %}">
+{% endblock %}
+
+{% block title %}注册{% endblock %}
+
+{% block content %}
+    <div class="account">
+        <p class="title center">用户注册</p>
+        <form id="regForm" method="POST" novalidate style="height: 460px;">
+            {% csrf_token %}
+            {% for field in form %}
+                {% if field.name == 'code' %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}<span style="color: red">*</span></label>
+                        <div class="row">
+                            <div class="col-xs-7">
+                                {{ field }}
+                                <span class="error-msg"></span>
+                            </div>
+                            <div class="col-xs-5">
+                                <input id="codebtn" type="button" class="btn btn-default" value="获取验证码">
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    {% if  field.name == 'emai' %}
+                        <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        <span class="error-msg"></span>
+                    </div>
+                    {% else %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}<span style="color: red">*</span></label>
+                        {{ field }}
+                        <span class="error-msg"></span>
+                    </div>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+            <a href="{% url 'login' %}" class="btn btn-primary" style="float: left">返回登录</a>
+            <button id="btnSubmit" type="button" class="btn btn-primary" style="float: right;">注册</button>
+        </form>
+    </div>
+    <div class="footer" style="height: 30px;width: 100%;"></div>
+{% endblock %}
+
+{% block js %}
+    <script>
+
+        /*各点击事件*/
+        $(function () {
+            bindcodebtnClick();
+            bindbtnSubmitClick();
+        });
+        /*注册按钮事件*/
+        function bindbtnSubmitClick() {
+            $('#btnSubmit').click(function () {
+                $('.error-msg').empty();
+                $.ajax({
+                    url:"{% url 'register' %}",
+                    type:"POST",
+                    data:$('#regForm').serialize(),
+                    dataType:"JSON",
+                    success: function (res){
+                        if(res.status){
+                            {% if messages %}
+                                {% for message in messages %}
+                                    alert('{{ message }}');
+                                {% endfor %}
+                            {% endif %}
+                            location.href=res.data;
+                        }else {
+                            $.each(res.error,function (key,value) {
+                                $("#id_"+key).next().text(value[0])})
+                        }
+                    }
+                })
+            })
+        }
+        /*验证码按钮事件绑定*/
+        function bindcodebtnClick() {
+            $('#codebtn').click(function () {
+                $('.error-msg').empty();
+                //获取用户手机号
+                var mobilePhone=$('#id_mobile_phone').val();
+                console.log(mobilePhone);
+                //发送Ajax请求，把手机号传到后端
+                $.ajax({
+                    url:"{% url 'send_sms' %}",
+                    type:"GET",
+                    data:{mobile_phone:mobilePhone,tql:"register"},
+                    dataType:"JSON",
+                    success:
+                    function (res) {
+                        //发送成功后自动执行，res是后端返回值
+                        if(res.status){
+                            console.log(res);
+                            sendTime();
+                        }else{
+                            console.log(res);
+                            $.each(res.error,function (key,value) {
+                                $("#id_"+key).next().text(value[0])
+                            })
+                        }
+                    },
+                })
+            })
+        }
+        /*倒计时*/
+        function sendTime() {
+            var codebtn=$('#codebtn');
+            codebtn.prop('disabled',true);
+            var time=60;
+            var remind=setInterval(function () {
+                codebtn.val(time+'秒后重新发送');
+                time=time-1;
+                if(time<1){
+                    clearInterval(remind);
+                    codebtn.val('获取验证码').prop('disabled',false);
+                }
+            },1000)
+        }
+    </script>
+{% endblock %}

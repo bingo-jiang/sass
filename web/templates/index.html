@@ -1,0 +1,30 @@
+{% extends 'mother_tmp/basic.html' %}
+{% load static %}
+{% block title %}首页{% endblock %}
+{% block css %}
+    <style>
+        img {
+            width: 100%;
+            margin-top: 5px;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container-fluid">
+        <img src="{% static 'imgs/01.png' %}" alt="">
+        <img src="{% static 'imgs/02.png' %}" alt="">
+    </div>
+    {#    <div class="container-fluid">#}
+    {#        <img src="https://img.zcool.cn/community/01efbd583806f6a8012060c84ddec8.jpg@1280w_1l_2o_100sh.jpg" alt="*">#}
+    {#        <img src="http://www.4kjia.com/uploads/litimg/c20184/1525179897442.jpg" alt="泳装美女">#}
+    {#        <img src="https://img.zcool.cn/community/01494a5af5ce5aa801216045b5dd52.jpg@1280w_1l_2o_100sh.jpg"#}
+    {#             alt="美女BIANSHI">#}
+    {#    </div>#}
+{% endblock %}
+{% block js %}
+    {% if messages %}
+        {% for message in messages %}
+            alert('{{ message }}');
+        {% endfor %}
+    {% endif %}
+{% endblock %}

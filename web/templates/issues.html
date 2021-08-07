@@ -1,0 +1,714 @@
+{% extends 'mother_tmp/project_basis.html' %}
+{% load static %}
+{% load issues_id_format %}
+{% block title %}项目问题{% endblock %}
+{% block css %}
+    <link rel="stylesheet" href="{% static 'plugins/mdeditor/css/editormd.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/bootstrap-datepicker/css/bootstrap-datepicker.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/bootstrap-select-1.13.9/css/bootstrap-select.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2/css/select2.css' %}">
+
+    <style>
+        .dropdown #left_dropdown {
+            border-bottom: 2px solid white;
+        }
+
+        #issues {
+            background-color: #2aabd2;
+        }
+
+        /*四个按钮*/
+        #issues_btn {
+            min-height: 50px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            border-bottom: 1px solid #dddddd;
+        }
+
+
+        #issues_btn div a {
+            margin: 10px 8px;
+        }
+
+        /*表格及checkbox*/
+        .issues {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        .delete-check-list {
+            align-items: center;
+            display: flex;
+            flex-direction: row;
+        }
+
+        #issues_num a {
+            font-weight: 500;
+            padding: 0 10px;
+        }
+
+        #issues_num a:hover {
+            text-decoration: none;
+        }
+
+        #issues_list .issues .tags {
+            padding: 10px 0;
+        }
+
+        #issues_list .issues .tags span {
+            margin-right: 20px;
+            display: inline-block;
+            font-size: 14px;
+        }
+
+        #issues_list .issues .tags .type {
+            color: white;
+            padding: 1px 5px;
+            border-radius: 5px;
+        }
+
+        .pd-0 {
+            padding: 0 !important;
+        }
+
+        #desc {
+            margin-bottom: 0;
+        }
+
+        #issuesModal .form-group {
+            margin-top: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 35px;
+        }
+
+        .issues-content .tags {
+            margin: 5px auto;
+            text-align: center;
+        }
+
+        .issues a:hover {
+            text-decoration: none;
+            color: blue;
+        }
+
+        .issues-content .tags span {
+            margin-right: 20px;
+            color: #2aabd2;
+            font-size: 16px;
+        }
+
+        /* 筛选 */
+
+        .filter-area .item {
+            margin: 15px auto;
+            text-align: center;
+        }
+
+        .filter-area .item .title {
+            padding: 5px 0;
+            color: black;
+            height: 30px;
+        }
+
+        .filter-area .item .check-list a {
+            text-decoration: none;
+            display: inline-block;
+            min-width: 50px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .filter-area .item .check-list label {
+            font-weight: 200;
+            font-size: 13px;
+            margin-left: 3px;
+        }
+
+        .filter-area .item .check-list a:hover {
+            font-weight: 300;
+        }
+
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container-fluid" style="padding: 15px;">
+        <div class="col-md-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        <i class="fa fa-search" aria-hidden="true" style="margin-right: 5px;"></i>筛选选项
+                    </h3>
+                </div>
+                <div class="panel-body filter-area">
+                    {% for row in filter_list %}
+                        <div class="item" id="{{ row.filter.get_name }}" style="width: 96%;">
+                            <div class="title">{{ row.title }}</div>
+                            <div class="check-list">
+                                {% for item in row.filter %}
+                                    {{ item }}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-9">
+            {% if not issues_obj %}
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <i class="fa fa-question" aria-hidden="true" style="margin-right: 5px;"></i>问题
+                        </h3>
+                    </div>
+                    <div id="issues_btn">
+                        <div id="btn-left">
+                            <a class="btn btn-success" data-toggle="modal" data-target="#issuesModal">新建问题</a>
+                            <a class="btn btn-info" data-toggle="modal" data-target="#inviteModal">邀请成员</a>
+                        </div>
+                        <span class="issues-delete-error" style="color: red;align-items: center;"></span>
+                        <div id="btn-right">
+                            <a id="chose-all-issues" class="btn btn-info">全选/全不选</a>
+                            <a id="clear-issues" class="btn btn-danger">删除</a>
+                        </div>
+                        <!-- 新建问题Modal -->
+                        <div class="modal fade" id="issuesModal" tabindex="-1" role="dialog"
+                             aria-labelledby="myModalLabel">
+                            <div class="modal-dialog modal-lg" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal"
+                                                aria-label="Close"><span
+                                                aria-hidden="true">&times;</span></button>
+                                        <h4 class="modal-title" id="myModalLabel">新建问题</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="add-issues-form" class="form-horizontal">{% csrf_token %}
+                                            <div class="form-group">
+                                                <label for="{{ form.issues_type.id_for_label }}"
+                                                       class="col-sm-2 control-label">
+                                                    {{ form.issues_type.label }}
+                                                </label>
+                                                <div class="col-sm-10">
+                                                    <div>{{ form.issues_type }}</div>
+                                                    <div class="error-msg"></div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="{{ form.subject.id_for_label }}"
+                                                       class="col-sm-2 control-label">
+                                                    {{ form.subject.label }}
+                                                </label>
+                                                <div class="col-sm-10">
+                                                    <div>
+                                                        {{ form.subject }}
+                                                    </div>
+                                                    <div class="error-msg"></div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="{{ form.module.id_for_label }}"
+                                                       class="col-sm-2 control-label">
+                                                    {{ form.module.label }}
+                                                </label>
+                                                <div class="col-sm-10">
+                                                    <div>{{ form.module }}</div>
+                                                    <div class="error-msg"></div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="{{ form.desc.id_for_label }}"
+                                                       class="col-sm-2 control-label">
+                                                    {{ form.desc.label }}
+                                                </label>
+                                                <div class="col-sm-10">
+                                                    <!--div包住desc字段，便于设置markdown格式-->
+                                                    <div id="desc">{{ form.desc }}</div>
+                                                    <div class="error-msg"></div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group clearfix">
+                                                <div class="col-xs-6 pd-0">
+                                                    <label for="{{ form.status.id_for_label }}"
+                                                           class="col-sm-4 control-label">
+                                                        {{ form.status.label }}
+                                                    </label>
+                                                    <div class="col-sm-8">
+                                                        <div>
+                                                            <div>{{ form.status }}</div>
+                                                            <div class="error-msg"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-xs-6 pd-0">
+                                                    <label for="{{ form.priority.id_for_label }}"
+                                                           class="col-sm-4 control-label">
+                                                        {{ form.priority.label }}
+                                                    </label>
+                                                    <div class="col-sm-8">
+                                                        <div>
+                                                            <div>{{ form.priority }}</div>
+                                                            <div class="error-msg"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group clearfix">
+                                                <div class="col-xs-6 pd-0">
+                                                    <label for="{{ form.assign.id_for_label }}"
+                                                           class="col-sm-4 control-label">
+                                                        {{ form.assign.label }}
+                                                    </label>
+                                                    <div class="col-sm-8">
+                                                        <div id="desc">
+                                                            <div>{{ form.assign }}</div>
+                                                            <div class="error-msg"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-xs-6 pd-0">
+                                                    <label for="{{ form.attention.id_for_label }}"
+                                                           class="col-sm-4 control-label">
+                                                        {{ form.attention.label }}
+                                                    </label>
+                                                    <div class="col-sm-8">
+                                                        <div id="desc">
+                                                            <div>{{ form.attention }}</div>
+                                                            <div class="error-msg"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group clearfix">
+                                                <div class="col-xs-6 pd-0">
+                                                    <label for="{{ form.start_date.id_for_label }}"
+                                                           class="col-sm-4 control-label">
+                                                        {{ form.start_date.label }}
+                                                    </label>
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group">
+                                                            <div class="input-group-addon">
+                                                                <i class="fa fa-calendar" aria-hidden="true"></i>
+                                                            </div>
+                                                            {{ form.start_date }}
+                                                        </div>
+                                                        <div class="error-msg"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-xs-6 pd-0">
+                                                    <label for="{{ form.end_date.id_for_label }}"
+                                                           class="col-sm-4 control-label">
+                                                        {{ form.end_date.label }}
+                                                    </label>
+                                                    <div class="col-sm-8">
+                                                        <div class="input-group">
+                                                            <div class="input-group-addon">
+                                                                <i class="fa fa-calendar" aria-hidden="true"></i>
+                                                            </div>
+                                                            {{ form.end_date }}
+                                                        </div>
+                                                        <div class="error-msg"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group clearfix">
+                                                <div class="col-xs-6 pd-0">
+                                                    <label for="{{ form.mode.id_for_label }}"
+                                                           class="col-sm-4 control-label">
+                                                        {{ form.mode.label }}
+                                                    </label>
+                                                    <div class="col-sm-8">
+                                                        <div>
+                                                            <div>{{ form.mode }}</div>
+                                                            <div class="error-msg"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-xs-6 pd-0">
+                                                    <label for="{{ form.parent.id_for_label }}"
+                                                           class="col-sm-4 control-label">
+                                                        {{ form.parent.label }}
+                                                    </label>
+                                                    <div class="col-sm-8">
+                                                        <div>
+                                                            <div>{{ form.parent }}</div>
+                                                            <div class="error-msg"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                                        <button type="button" class="btn btn-primary" id="addIssuesBtn">确定</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 邀请成员Modal -->
+                        <div class="modal fade" id="inviteModal" tabindex="-1" role="dialog"
+                             aria-labelledby="myModalLabel">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal"
+                                                aria-label="Close"><span
+                                                aria-hidden="true">&times;</span></button>
+                                        <h4 class="modal-title" id="myModalLabel">项目成员邀请</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="invite-form" class="form-horizontal">{% csrf_token %}
+                                            {% for item in invite_form %}
+                                                <div class="form-group" style="width: 96%;margin: 10px auto;">
+                                                    <label for="{{ item.id_for_label }}">{{ item.label }}</label>
+                                                    <span style="color: #8c8c8c;">
+                                                        {% if item.help_text %}{{ item.help_text }}{% endif %}
+                                                    </span>
+                                                    {{ item }}
+                                                    <div class="error-msg"></div>
+                                                </div>
+                                            {% endfor %}
+                                        </form>
+                                        <button id="getInviteCode" class="btn btn-danger" style="margin-left: 80%;">
+                                            生成邀请码
+                                        </button>
+                                    </div>
+                                    <div class="hide" id="inviteCodeArea">
+                                        <hr style="margin-bottom: 15px;margin-top: 0;">
+                                        <div class="form-group" style="margin: 10px auto;width: 96%;">
+                                            <div class="input-group">
+                                                <div class="input-group-btn">
+                                                    <label>
+                                                        <input type="button" value="链接" class="btn btn-default">
+                                                    </label>
+                                                </div>
+                                                <label for="inviteCode"></label>
+                                                <input type="text" class="form-control" id="inviteCode">
+                                                <div class="input-group-btn">
+                                                    <label>
+                                                        <input type="button" value="复制链接" class="btn btn-info"
+                                                               id="copyCode">
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--问题展示-->
+                    <div id="issues-show">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <tbody id="issues_list">
+                                {% for item in issues_list %}
+                                    <tr>
+                                        <td id="issues_num" style="color: #2b669a;font-size: 16px;">
+                                            <i class="fa fa-circle text-{{ item.priority }}" aria-hidden="true"></i>
+                                            <a href="{% url 'issues_detail' project_id=request.current.project.id issues_id=item.id %}">
+                                                {% string_just item.id %}
+                                            </a>
+                                        </td>
+                                        <td class="issues">
+                                            <div>
+                                                <div style="font-size: 16px;">
+                                                    <a href="{% url 'issues_detail' project_id=request.current.project.id issues_id=item.id %}">
+                                                        {{ item.subject }}
+                                                    </a>
+                                                </div>
+                                                <div class="tags">
+                                        <span class="type" style="background-color: #2aabd2;">
+                                            {{ item.issues_type.title }}
+                                        </span>
+
+                                                    <span class="status">
+                                            <i class="fa fa-refresh" aria-hidden="true"></i>
+                                            {{ item.get_status_display }}
+                                        </span>
+
+                                                    <span class="user">
+                                            <i class="fa fa-user-circle-o" aria-hidden="true"></i>
+                                            {{ item.creator.username }}
+                                        </span>
+                                                    <span>
+                                            <i class="fa fa-share" aria-hidden="true"></i>
+                                            <i class="fa fa-user-o" aria-hidden="true"></i>
+                                            {{ item.assign.username }}
+                                        </span>
+                                                    <span>
+                                            <i class="fa fa-calendar" aria-hidden="true"></i>
+                                            {{ item.end_date }}
+                                        </span>
+                                                    <span>
+                                            <i class="fa fa-clock-o" aria-hidden="true"></i>
+                                            {{ item.latest_update_datetime }}
+                                        </span>
+                                                </div>
+                                            </div>
+                                            <div class="delete-check-list" style="justify-content: space-between">
+                                                <label>
+                                                    <input type="checkbox" issuesId="{{ item.id }}">
+                                                </label>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!--分页展示-->
+                <div style="display:flex;justify-content: center;flex-direction: row">
+                    <nav aria-label="Page navigation" style="margin-top: 10px;margin-bottom: 20px;">
+                        <ul class="pagination">
+                            {{ page_html|safe }}
+                        </ul>
+                    </nav>
+                </div>
+            {% else %}
+                <!--问题内容预览-->
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            <a href="{% url 'issues' project_id=request.current.project.id %}?issues_id={{ item.id }}">
+                                <i class="fa fa-question" aria-hidden="true" style="margin-right: 5px;"></i>问题详情
+                            </a>
+                        </h3>
+                    </div>
+                </div>
+                <div class="issues-content">
+                    <div id="issues-title" style="text-align: center;color: #2aabd2;font-size: 32px;">
+                        {{ issues_obj.subject }}
+                    </div>
+                    <div class="tags">
+                        <span class="type">
+                            <i class="fa fa-modx" aria-hidden="true"></i>
+                            问题类型:{{ issues_obj.issues_type.title }}
+                        </span>
+                        <span class="status">
+                            <i class="fa fa-refresh" aria-hidden="true"></i>
+                            状态:{{ issues_obj.get_status_display }}
+                        </span>
+                        <span>
+                            <i class="fa fa-clock-o" aria-hidden="true"></i>
+                            最近更新:{{ issues_obj.latest_update_datetime }}
+                        </span>
+                    </div>
+                    <div class="tags">
+                        <span class="user">
+                            <i class="fa fa-user-circle-o" aria-hidden="true"></i>
+                            创建者:{{ issues_obj.creator.username }}
+                        </span>
+                        <span>
+                            <i class="fa fa-share" aria-hidden="true"></i>
+                            指派给:{{ issues_obj.assign.username }}
+                        </span>
+                        <span>
+                            <i class="fa fa-calendar" aria-hidden="true"></i>
+                            截止时间:{{ issues_obj.end_date }}
+                        </span>
+                    </div>
+                    <div style="color: #2aabd2;font-size: 16px;margin-top: 30px;">
+                        <i class="fa fa-info" aria-hidden="true"></i>问题描述：
+                    </div>
+                    <div id="issues-preview-markdown" style="font-size: 16px;padding: 0;text-align: center;">
+                        <label for="issues-content"></label>
+                        <textarea id="issues-content">{{ issues_obj.desc }}</textarea>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+    <script src="{% static 'plugins/mdeditor/editormd.min.js' %}"></script>
+    <script src="{% static 'plugins/bootstrap-datepicker/js/bootstrap-datepicker.min.js' %}"></script>
+    <script src="{% static 'plugins/bootstrap-datepicker/locales/bootstrap-datepicker.zh-CN.min.js' %}"></script>
+    <script src="{% static 'plugins/bootstrap-select-1.13.9/js/bootstrap-select.min.js' %}"></script>
+    <script src="{% static 'plugins/bootstrap-select-1.13.9/js/i18n/defaults-zh_CN.min.js' %}"></script>
+    <script src="{% static 'plugins/select2/js/select2.js' %}"></script>
+    <script src="{% static 'plugins/select2/js/i18n/zh-CN.js' %}"></script>
+
+
+    <script>
+        var picUpload = "{% url 'wiki_img_upload' project_id=request.current.project.id %}";
+        var ADD_ISSUES_URL = "{% url 'issues' project_id=request.current.project.id %}";
+        var INVITE_URL = "{% url 'invite' project_id=request.current.project.id %}";
+        $(function () {
+            ModalShown();
+            initDatePicker();
+            bindaddIssuesBtnClick();
+            bindClickCheckFilter();
+            initSelect2();
+            bindBtngetInviteCode();
+            bindcopyCode();
+            choseAllClick();
+            choseClick();
+            issuesDeleteBtn();
+        });
+
+        //问题删除按钮
+        function issuesDeleteBtn() {
+            $("#clear-issues").click(function () {
+                var idArr = [];
+                $('.delete-check-list input').each(function () {
+                    var flag = this.hasAttribute('checked');//是否被选中
+                    if (flag) {
+                        var idDict = {};
+                        idDict['id'] = $(this).attr('issuesId');
+                        idArr.push(idDict);
+                    }
+                });
+                $.ajax({
+                    url: "{% url 'issues_delete' project_id=request.current.project.id %}",
+                    type: 'POST',
+                    data: {'': idArr},
+                    dataType: "JSON",
+                    success: function (res) {
+                        if (res.status) {
+                            location.reload();
+                        } else {
+                            console.log(res.error);
+                            $(".issues-delete-error").text(res.error);
+                        }
+                    }
+                })
+            })
+        }
+
+        //问题删除全选按钮
+        function choseAllClick() {
+            $("#chose-all-issues").click(function () {
+                var $input = $(".delete-check-list input");
+                if($input.attr('checked')==='checked'){
+                    $input.attr('checked', false);
+                }else {
+                    $input.attr('checked', true);
+                }
+            })
+        }
+
+        //问题删除单个选中按钮
+        function choseClick() {
+            $(".delete-check-list input").click(function () {
+                var $checkBtn = $(this);
+                var isChose = $checkBtn.attr('checked');
+                if (typeof isChose === 'undefined') {
+                    $checkBtn.attr('checked', true);
+                } else {
+                    $checkBtn.attr('checked', false);
+                }
+            })
+        }
+
+        //复制链接
+        function bindcopyCode() {
+            $('#copyCode').click(function () {
+                var urlTxet = $('#inviteCode')[0];
+                urlTxet.select();
+                document.execCommand('Copy');
+                alert('复制成功');
+            })
+        }
+
+        //生成邀请码
+        function bindBtngetInviteCode() {
+            $('#getInviteCode').click(function () {
+                $.ajax({
+                    url: INVITE_URL,
+                    type: 'POST',
+                    data: $('#invite-form').serialize(),
+                    dataType: 'JSON',
+                    success: function (res) {
+                        if (res.status) {
+                            console.log(res.data);
+                            $('#inviteCodeArea').removeClass('hide').find('#inviteCode').val(res.data);
+                        } else {
+                            console.log(res.error);
+                            $.each(res.error, function (key, value) {
+                                $("#id_" + key).next('.error-msg').text(value[0]);
+                            })
+                        }
+                    }
+                })
+            })
+        }
+
+        //初始化select2
+        function initSelect2() {
+            $('.select2').select2({}).on('select2:select', function (e) {
+                // 选中某一项触发
+                location.href = e.params.data.id;
+            }).on('select2:unselect', function (e) {
+                // 移除某一项触发
+                location.href = e.params.data.id;
+            });
+        }
+
+        //点击筛选的checkbox
+        function bindClickCheckFilter() {
+            $('.filter-area').find(':checkbox').click(function () {
+                location.href = $(this).parent().attr('href');
+            });
+        }
+
+        //初始化日期选择器
+        function initDatePicker() {
+            $('#id_start_date,#id_end_date').datepicker({
+                format: 'yyyy-mm-dd',
+                startDate: 0,
+                language: 'zh-CN',
+                autoclose: true,
+            });
+        }
+
+        //只有模态对话框显示后才会加载编辑器
+        function ModalShown() {
+            $('#issuesModal').on('shown.bs.modal', function (event) {
+                initMdEditor();/*初始化编辑器事件*/
+            })
+        }
+
+        function initMdEditor() {
+            editormd('desc', {
+                placeholder: '请输入内容',
+                height: 400,
+                path: "{% static 'plugins/mdeditor/lib/' %}",
+                imageUpload: true,/*支持本地图片上传*/
+                imageUploadURL: picUpload,/*上传图片的url*/
+                imageFormats: ["jpg", "png", "jpeg", "gif"]/*支持的图片格式*/
+            })
+        }
+
+        //添加问题按钮事件
+        function bindaddIssuesBtnClick() {
+            $('#addIssuesBtn').click(function () {
+                $.ajax({
+                    url: ADD_ISSUES_URL,
+                    type: 'POST',
+                    data: $('#add-issues-form').serialize(),
+                    dataType: 'JSON',
+                    success: function (res) {
+                        if (res.status) {
+                            console.log('成功');
+                            parent.location.reload();
+                        } else {
+                            console.log(res.error);
+                            $.each(res.error, function (key, value) {
+                                $("#id_" + key).parent().next('.error-msg').text(value[0]);
+                            });
+                        }
+                    }
+                })
+            });
+        }
+    </script>
+{% endblock %}
